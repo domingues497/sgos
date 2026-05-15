@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chamados – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  
+</head>
+<body class="page-login">
+  <div class="card">
+    <div class="brand">
+      <!-- Magnifying glass icon matching prototype -->
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <h1>Chamados</h1>
+    </div>
+    <p class="subtitle">Sistema de Gestão de Chamados</p>
+
+    <div id="alert-box" class="alert" role="alert"></div>
+
+    <div class="field">
+      <label for="usuario">Usuário</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <input type="text" id="usuario" placeholder="Digite seu usuário" autocomplete="username"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="senha">Senha</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input type="password" id="senha" placeholder="Digite sua senha" autocomplete="current-password"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="remember">
+        <input type="checkbox" id="lembrar"/> Lembrar-me
+      </label>
+      <a href="recuperar-senha.html" class="forgot">Esqueceu a senha?</a>
+    </div>
+
+    <button class="btn-primary" onclick="handleLogin()">Entrar</button>
+
+    <div class="footer-link">
+      Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    // Se já logado, vai direto ao dashboard
+    Auth.redirectIfLoggedIn();
+
+    const alertBox = document.getElementById('alert-box');
+
+    function setAlert(msg, type = 'error') {
+      alertBox.className = `alert ${type}`;
+      alertBox.textContent = msg;
+    }
+
+    function setLoading(on) {
+      const btn = document.querySelector('.btn-primary');
+      btn.disabled = on;
+      btn.textContent = on ? 'Entrando...' : 'Entrar';
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById('usuario').value.trim();
+      const password = document.getElementById('senha').value;
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+
+      if (!username || !password) {
+        setAlert('Preencha usuário e senha para continuar.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const data = await api.login(username, password);
+        // Busca dados do usuário e salva tudo
+        const userRes = await fetch(`${API_BASE}/auth/me/`, {
+          headers: { 'Authorization': `Bearer ${data.access}` }
+        });
+        const user = await userRes.json();
+        Auth.save(data.access, data.refresh, user);
+
+        if (document.getElementById('lembrar').checked) {
+          localStorage.setItem('sgos_remember', '1');
+        }
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        setLoading(false);
+        const msg = err?.data?.detail || 'Usuário ou senha inválidos.';
+        setAlert(msg);
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+</body>
+</html>

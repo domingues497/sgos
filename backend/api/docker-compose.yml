@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  # ── PostgreSQL ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: sgos_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       sgos
+      POSTGRES_USER:     sgos_user
+      POSTGRES_PASSWORD: sgos_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sgos_user -d sgos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Django API ────────────────────────────────────────────
+  api:
+    build: .
+    container_name: sgos_api
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      POSTGRES_DB:       sgos
+      POSTGRES_USER:     sgos_user
+      POSTGRES_PASSWORD: sgos_pass
+      POSTGRES_HOST:     db
+      POSTGRES_PORT:     5432
+      DEBUG:             "True"
+      SECRET_KEY:        "troque-em-producao-use-uma-chave-forte"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - media_files:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  media_files:

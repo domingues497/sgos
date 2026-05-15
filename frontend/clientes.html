@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chamados – Clientes</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  
+</head>
+<body class="page-clientes">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <span>Chamados</span>
+  </div>
+  <div class="sidebar-section-label">Menu</div>
+  <nav>
+    <a class="nav-item" href="dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="abrir-chamado.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Abrir Chamado
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Meus Chamados
+    </a>
+    <a class="nav-item" href="kanban.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Kanban
+    </a>
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Clientes
+    </a>
+  </nav>
+  <div class="sidebar-footer sidebar-footer--stack">
+    <div class="sidebar-userrow">
+      <div class="avatar">GM</div>
+      <div class="user-info">
+        <div class="user-name">Gustavo Monteiro</div>
+        <div class="user-role">Funcionário</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="api.logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>Dashboard</span><span>/</span>
+        <span class="current">Clientes</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-primary" onclick="openAddModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Cliente
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Pesquisar por nome do cliente..." oninput="renderTable()"/>
+      </div>
+      <span class="count-label" id="count-label"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('nome')"><div class="th-inner">Cliente <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></th>
+            <th onclick="sortBy('telefone')"><div class="th-inner">Telefone</div></th>
+            <th onclick="sortBy('email')"><div class="th-inner">E-mail</div></th>
+            <th><div class="th-inner">Endereço</div></th>
+            <th onclick="sortBy('os')"><div class="th-inner">Chamados <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></th>
+            <th><div class="th-inner">Ações</div></th>
+          </tr>
+        </thead>
+        <tbody id="client-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h3>Nenhum cliente encontrado</h3>
+        <p>Tente outro termo de busca ou cadastre um novo cliente.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR / EDITAR -->
+<div class="modal-overlay" id="modal-form" onclick="closeOutside(event,'modal-form')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="form-title">Novo Cliente</span>
+      <button class="modal-close" onclick="closeModal('modal-form')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Nome Completo <span class="req">*</span></label>
+          <input type="text" id="f-nome" placeholder="Ex: João da Silva"/>
+          <span class="err-msg" id="err-nome">Campo obrigatório</span>
+        </div>
+        <div class="field">
+          <label>Telefone <span class="req">*</span></label>
+          <input type="text" id="f-telefone" placeholder="(00) 00000-0000" oninput="maskPhone(this)"/>
+          <span class="err-msg" id="err-telefone">Campo obrigatório</span>
+        </div>
+        <div class="field">
+          <label>E-mail <span class="req">*</span></label>
+          <input type="text" id="f-email" placeholder="email@exemplo.com"/>
+          <span class="err-msg" id="err-email">E-mail inválido</span>
+        </div>
+        <div class="field form-full">
+          <label>Endereço</label>
+          <input type="text" id="f-endereco" placeholder="Rua, número, bairro, cidade"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="closeModal('modal-form')">Cancelar</button>
+      <button class="btn-save" onclick="saveClient()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXCLUIR -->
+<div class="modal-overlay" id="modal-delete" onclick="closeOutside(event,'modal-delete')">
+  <div class="modal delete-modal">
+    <div class="modal-header">
+      <span class="modal-title">Excluir Cliente</span>
+      <button class="modal-close" onclick="closeModal('modal-delete')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <h3>Confirmar exclusão</h3>
+      <p>Você está prestes a excluir o cliente <strong id="del-name"></strong>. Esta ação não pode ser desfeita.</p>
+      <p class="warn" id="del-warn"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn-delete" id="btn-confirm-delete" onclick="confirmDelete()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VER CLIENTE -->
+<div class="modal-overlay" id="modal-view" onclick="closeOutside(event,'modal-view')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Dados do Cliente</span>
+      <button class="modal-close" onclick="closeModal('modal-view')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="view-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="closeModal('modal-view')">Fechar</button>
+      <button class="btn-save" id="btn-view-edit">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg id="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="api.js"></script>
+<script>
+Auth.requireAuth();
+fillSidebarUser();
+
+const AVATAR_COLORS = ['#3b82f6','#8b5cf6','#ef4444','#f59e0b','#10b981','#06b6d4','#ec4899','#6366f1'];
+const STATUS_META_C = {
+  aberta:       { color:'#3b82f6', bg:'#dbeafe', text:'#1e40af', label:'Aberta' },
+  aguardando:   { color:'#f59e0b', bg:'#fef3c7', text:'#92400e', label:'Aguardando' },
+  em_andamento: { color:'#8b5cf6', bg:'#ede9fe', text:'#5b21b6', label:'Em Andamento' },
+  em_avaliacao: { color:'#06b6d4', bg:'#cffafe', text:'#155e75', label:'Em Avaliação' },
+  encerrada:    { color:'#10b981', bg:'#d1fae5', text:'#065f46', label:'Encerrada' },
+};
+
+let clients = [];
+let editingId = null;
+let deletingId = null;
+let sortField = 'nome';
+let sortAsc = true;
+let searchQ = '';
+
+function initials(name) { return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function avatarColor(id) { return AVATAR_COLORS[((id||0)-1) % AVATAR_COLORS.length]; }
+
+function maskPhone(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  else if (v.length) v = `(${v}`;
+  input.value = v;
+}
+
+// ─── LOAD ───────────────────────────────────────────────
+async function loadClients() {
+  try {
+    const res = await api.clientes.list(searchQ);
+    clients = res.results || [];
+    renderTable();
+  } catch(err) {
+    showToast('error', 'Erro ao carregar clientes.');
+  }
+}
+
+// ─── RENDER TABLE ────────────────────────────────────────
+function renderTable() {
+  let list = [...clients];
+
+  list.sort((a,b) => {
+    let va = sortField === 'os' ? (a.total_os||0) : (a[sortField]||'').toLowerCase();
+    let vb = sortField === 'os' ? (b.total_os||0) : (b[sortField]||'').toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ?  1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('client-tbody');
+  const empty = document.getElementById('empty-state');
+  tbody.innerHTML = '';
+  document.getElementById('count-label').textContent = `${list.length} cliente${list.length!==1?'s':''}`;
+
+  if (list.length === 0) { empty.classList.add('visible'); return; }
+  empty.classList.remove('visible');
+
+  list.forEach((c, i) => {
+    const canDelete = !c.tem_os_ativa;
+    const osClass = c.total_os === 0 ? 'none' : c.os_abertas > 0 ? 'has-open' : 'all-closed';
+    const osText  = c.total_os === 0 ? '0 chamados' : c.os_abertas > 0 ? `${c.os_abertas} em aberto` : `${c.total_os} encerrado${c.total_os>1?'s':''}`;
+
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = (i * 0.04) + 's';
+    tr.innerHTML = `
+      <td><div class="cell-name">
+        <div class="client-initials" style="background:${avatarColor(c.id)}">${initials(c.nome)}</div>
+        <div><div class="client-name">${c.nome}</div></div>
+      </div></td>
+      <td>${c.telefone}</td>
+      <td>${c.email}</td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.endereco||'—'}</td>
+      <td><span class="os-count ${osClass}">${osText}</span></td>
+      <td><div class="action-group">
+        <button class="btn-icon" title="Visualizar" onclick="openView(${c.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="btn-icon" title="Editar" onclick="openEdit(${c.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon danger" title="${canDelete?'Excluir':'Possui chamados em aberto'}" onclick="openDelete(${c.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function sortBy(field) {
+  if (sortField === field) sortAsc = !sortAsc;
+  else { sortField = field; sortAsc = true; }
+  renderTable();
+}
+
+// ─── SEARCH ─────────────────────────────────────────────
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchQ = e.target.value.trim();
+  searchTimer = setTimeout(loadClients, 350);
+});
+
+// ─── MODAL ADD/EDIT ──────────────────────────────────────
+function openAddModal() {
+  editingId = null;
+  document.getElementById('form-title').textContent = 'Novo Cliente';
+  clearForm();
+  document.getElementById('modal-form').classList.add('open');
+}
+
+function openEdit(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('form-title').textContent = 'Editar Cliente';
+  document.getElementById('f-nome').value     = c.nome;
+  document.getElementById('f-telefone').value = c.telefone;
+  document.getElementById('f-email').value    = c.email;
+  document.getElementById('f-endereco').value = c.endereco || '';
+  clearErrors();
+  document.getElementById('modal-form').classList.add('open');
+  document.getElementById('modal-view').classList.remove('open');
+}
+
+function clearForm() {
+  ['f-nome','f-telefone','f-email','f-endereco'].forEach(id => document.getElementById(id).value='');
+  clearErrors();
+}
+
+function clearErrors() {
+  ['nome','telefone','email'].forEach(f => {
+    document.getElementById('f-'+f).classList.remove('error');
+    document.getElementById('err-'+f).classList.remove('visible');
+  });
+}
+
+function setError(field, msg) {
+  document.getElementById('f-'+field).classList.add('error');
+  const el = document.getElementById('err-'+field);
+  el.textContent = msg; el.classList.add('visible');
+}
+
+async function saveClient() {
+  const nome     = document.getElementById('f-nome').value.trim();
+  const telefone = document.getElementById('f-telefone').value.trim();
+  const email    = document.getElementById('f-email').value.trim();
+  const endereco = document.getElementById('f-endereco').value.trim();
+  let ok = true;
+  clearErrors();
+  if (!nome)    { setError('nome','Nome obrigatório'); ok=false; }
+  if (!telefone){ setError('telefone','Telefone obrigatório'); ok=false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setError('email','E-mail inválido'); ok=false; }
+  if (!ok) return;
+
+  const payload = { nome, telefone, email, endereco };
+  try {
+    if (editingId) {
+      await api.clientes.update(editingId, payload);
+      showToast('success','Cliente atualizado com sucesso!');
+    } else {
+      await api.clientes.create(payload);
+      showToast('success','Cliente cadastrado com sucesso!');
+    }
+    closeModal('modal-form');
+    loadClients();
+  } catch(err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+// ─── MODAL DELETE ────────────────────────────────────────
+function openDelete(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  deletingId = id;
+  document.getElementById('del-name').textContent = c.nome;
+  const hasOpen = c.tem_os_ativa;
+  document.getElementById('del-warn').textContent = hasOpen ? '⚠ Este cliente possui chamados em aberto e não pode ser excluído. (RN001)' : '';
+  document.getElementById('btn-confirm-delete').disabled = hasOpen;
+  document.getElementById('modal-delete').classList.add('open');
+}
+
+async function confirmDelete() {
+  try {
+    await api.clientes.delete(deletingId);
+    closeModal('modal-delete');
+    showToast('success','Cliente excluído com sucesso!');
+    loadClients();
+  } catch(err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+// ─── MODAL VIEW ──────────────────────────────────────────
+async function openView(id) {
+  try {
+    const c = await api.clientes.get(id);
+    // Load OS for this client
+    const osRes = await api.os.list({ cliente: id, page_size: 20 });
+    const osList = osRes.results || [];
+
+    const osRows = osList.length === 0
+      ? `<p style="font-size:.82rem;color:var(--text-muted)">Nenhum chamado vinculado.</p>`
+      : osList.map(o => {
+          const sm = STATUS_META_C[o.status] || {};
+          return `<div class="os-row">
+            <div class="os-row-left">
+              <span class="os-row-num">${o.numero}</span>
+              <span class="os-row-title">${o.titulo}</span>
+            </div>
+            <span class="status-pill" style="background:${sm.bg};color:${sm.text}">
+              <span class="status-dot" style="background:${sm.color}"></span>${sm.label||o.status}
+            </span>
+          </div>`;
+        }).join('');
+
+    document.getElementById('view-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div class="client-initials" style="background:${avatarColor(c.id)};width:48px;height:48px;font-size:1rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">${initials(c.nome)}</div>
+        <div>
+          <div style="font-size:1.05rem;font-weight:700;color:var(--text-primary)">${c.nome}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">ID #${c.id}</div>
+        </div>
+      </div>
+      <div class="view-section">
+        <div class="view-section-title">Informações de Contato</div>
+        <div class="view-grid">
+          <div class="view-field"><label>Telefone</label><span>${c.telefone}</span></div>
+          <div class="view-field"><label>E-mail</label><span>${c.email}</span></div>
+          <div class="view-field" style="grid-column:1/-1"><label>Endereço</label><span>${c.endereco||'—'}</span></div>
+        </div>
+      </div>
+      <div class="view-section">
+        <div class="view-section-title">Chamados (${osList.length})</div>
+        <div class="os-list">${osRows}</div>
+      </div>`;
+
+    document.getElementById('btn-view-edit').onclick = () => openEdit(id);
+    document.getElementById('modal-view').classList.add('open');
+  } catch(err) {
+    showToast('error', 'Erro ao carregar dados do cliente.');
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+loadClients();
+
+</script>
+</body>
+</html>

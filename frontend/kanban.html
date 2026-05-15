@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chamados – Kanban</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  
+</head>
+<body class="page-kanban">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <span>Chamados</span>
+  </div>
+  <div class="sidebar-section-label">Menu</div>
+  <nav>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="abrir-chamado.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Abrir Chamado
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Meus Chamados
+    </a>
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Kanban
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Clientes
+    </a>
+  </nav>
+  <div class="sidebar-footer sidebar-footer--stack">
+    <div class="sidebar-userrow">
+      <div class="avatar">GM</div>
+      <div class="user-info">
+        <div class="user-name">Gustavo Monteiro</div>
+        <div class="user-role">Funcionário</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="api.logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>Dashboard</span>
+        <span>/</span>
+        <span class="current">Kanban</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar chamado ou cliente..." id="search-input" oninput="filterCards()"/>
+      </div>
+      <button class="btn-new" onclick="window.location.href='abrir-chamado.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Chamado
+      </button>
+    </div>
+  </div>
+
+  <!-- KANBAN WRAPPER -->
+  <div class="kanban-wrapper">
+    <div class="kanban-header">
+      <h2 class="kanban-title">Painel Kanban</h2>
+      <div class="filter-group">
+        <button class="filter-chip active" onclick="setFilter(this,'')">Todos</button>
+        <button class="filter-chip" onclick="setFilter(this,'Alta')">Alta</button>
+        <button class="filter-chip" onclick="setFilter(this,'Média')">Média</button>
+        <button class="filter-chip" onclick="setFilter(this,'Baixa')">Baixa</button>
+        <button class="filter-chip" onclick="setFilter(this,'Crítica')">Crítica</button>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+
+      <!-- ── ABERTA ── -->
+      <div class="column" data-col="Aberta">
+        <div class="col-header">
+          <div class="col-left">
+            <div class="col-dot"></div>
+            <span class="col-name">Aberta</span>
+          </div>
+          <span class="col-count" id="count-Aberta">0</span>
+        </div>
+        <div class="col-accent-bar"></div>
+        <div class="col-body" data-col="Aberta" ondragover="onDragOver(event)" ondrop="onDrop(event,'Aberta')" ondragleave="onDragLeave(event)">
+          <button class="add-card-btn" onclick="window.location.href='abrir-chamado.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Abrir chamado
+          </button>
+        </div>
+      </div>
+
+      <!-- ── AGUARDANDO ── -->
+      <div class="column" data-col="Aguardando">
+        <div class="col-header">
+          <div class="col-left">
+            <div class="col-dot"></div>
+            <span class="col-name">Aguardando</span>
+          </div>
+          <span class="col-count" id="count-Aguardando">0</span>
+        </div>
+        <div class="col-accent-bar"></div>
+        <div class="col-body" data-col="Aguardando" ondragover="onDragOver(event)" ondrop="onDrop(event,'Aguardando')" ondragleave="onDragLeave(event)"></div>
+      </div>
+
+      <!-- ── EM ANDAMENTO ── -->
+      <div class="column" data-col="Em Andamento">
+        <div class="col-header">
+          <div class="col-left">
+            <div class="col-dot"></div>
+            <span class="col-name">Em Andamento</span>
+          </div>
+          <span class="col-count" id="count-Em Andamento">0</span>
+        </div>
+        <div class="col-accent-bar"></div>
+        <div class="col-body" data-col="Em Andamento" ondragover="onDragOver(event)" ondrop="onDrop(event,'Em Andamento')" ondragleave="onDragLeave(event)"></div>
+      </div>
+
+      <!-- ── EM AVALIAÇÃO ── -->
+      <div class="column" data-col="Em Avaliação">
+        <div class="col-header">
+          <div class="col-left">
+            <div class="col-dot"></div>
+            <span class="col-name">Em Avaliação</span>
+          </div>
+          <span class="col-count" id="count-Em Avaliação">0</span>
+        </div>
+        <div class="col-accent-bar"></div>
+        <div class="col-body" data-col="Em Avaliação" ondragover="onDragOver(event)" ondrop="onDrop(event,'Em Avaliação')" ondragleave="onDragLeave(event)"></div>
+      </div>
+
+      <!-- ── ENCERRADA ── -->
+      <div class="column" data-col="Encerrada">
+        <div class="col-header">
+          <div class="col-left">
+            <div class="col-dot"></div>
+            <span class="col-name">Encerrada</span>
+          </div>
+          <span class="col-count" id="count-Encerrada">0</span>
+        </div>
+        <div class="col-accent-bar"></div>
+        <div class="col-body" data-col="Encerrada" ondragover="onDragOver(event)" ondrop="onDrop(event,'Encerrada')" ondragleave="onDragLeave(event)"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-num" id="modal-num"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-row">
+        <div class="modal-field"><label>Status</label><span id="modal-status"></span></div>
+        <div class="modal-field"><label>Prioridade</label><span id="modal-priority"></span></div>
+        <div class="modal-field"><label>Tipo</label><span id="modal-type"></span></div>
+        <div class="modal-field"><label>Categoria</label><span id="modal-cat"></span></div>
+        <div class="modal-field"><label>Cliente</label><span id="modal-client"></span></div>
+        <div class="modal-field"><label>Abertura</label><span id="modal-date"></span></div>
+      </div>
+      <div class="modal-desc-label">Descrição</div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-history">
+        <div class="history-label">Histórico</div>
+        <div id="modal-history-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal()">Fechar</button>
+      <button class="btn-modal-advance" id="btn-advance" onclick="advanceFromModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        Avançar Etapa
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+Auth.requireAuth();
+fillSidebarUser();
+
+const STATUS_ORDER = ['aberta','aguardando','em_andamento','em_avaliacao','encerrada'];
+const STATUS_META = {
+  aberta:       { label:'Aberta',       color:'#3b82f6' },
+  aguardando:   { label:'Aguardando',   color:'#f59e0b' },
+  em_andamento: { label:'Em Andamento', color:'#8b5cf6' },
+  em_avaliacao: { label:'Em Avaliação', color:'#06b6d4' },
+  encerrada:    { label:'Encerrada',    color:'#10b981' },
+};
+const PRIORITY_COLORS = { alta:'pri-alta', media:'pri-media', baixa:'pri-baixa', critica:'pri-critica' };
+const PRIORITY_LABELS = { alta:'Alta', media:'Média', baixa:'Baixa', critica:'Crítica' };
+
+let cards = [];
+let activeFilter = '';
+let dragId = null;
+let openCardId = null;
+
+// ─── LOAD ───────────────────────────────────────────────
+async function loadCards() {
+  try {
+    const res = await api.os.list({ page_size: 100 });
+    cards = res.results || [];
+    render();
+  } catch(err) {
+    showToast('error', 'Erro ao carregar chamados.');
+  }
+}
+
+// ─── RENDER ─────────────────────────────────────────────
+function render() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  STATUS_ORDER.forEach(status => {
+    const body = document.querySelector(`.col-body[data-col="${status}"]`);
+    const addBtn = body.querySelector('.add-card-btn');
+    body.innerHTML = '';
+    if (addBtn) body.appendChild(addBtn);
+
+    const filtered = cards.filter(c =>
+      c.status === status &&
+      (activeFilter === '' || c.prioridade === activeFilter) &&
+      (!q || c.numero.toLowerCase().includes(q) || c.titulo.toLowerCase().includes(q) || c.cliente_nome.toLowerCase().includes(q))
+    );
+
+    filtered.forEach((c, i) => {
+      const el = buildCard(c);
+      el.style.animationDelay = (i * 0.04) + 's';
+      body.appendChild(el);
+    });
+
+    const countEl = document.getElementById(`count-${status}`);
+    if (countEl) countEl.textContent = filtered.length;
+  });
+}
+
+function buildCard(c) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.draggable = true;
+  div.dataset.id = c.id;
+
+  const nextStatusKey = STATUS_ORDER[STATUS_ORDER.indexOf(c.status) + 1];
+  const nextMeta = nextStatusKey ? STATUS_META[nextStatusKey] : null;
+  const isLast = c.status === 'encerrada';
+  const date = new Date(c.aberta_em).toLocaleDateString('pt-BR');
+  const priClass = PRIORITY_COLORS[c.prioridade] || '';
+  const priLabel = PRIORITY_LABELS[c.prioridade] || c.prioridade;
+
+  div.innerHTML = `
+    <div class="card-top">
+      <span class="card-num">${c.numero}</span>
+      <span class="priority-badge ${priClass}">${priLabel}</span>
+    </div>
+    <div class="card-title">${c.titulo}</div>
+    <div class="card-desc">${c.descricao || ''}</div>
+    <div class="card-tags">
+      <span class="tag">${c.tipo_display || c.tipo}</span>
+      ${c.categoria ? `<span class="tag">${c.categoria}</span>` : ''}
+    </div>
+    <div class="card-footer">
+      <span class="card-client">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        ${c.cliente_nome}
+      </span>
+      <span class="card-date">${date}</span>
+    </div>
+    ${!isLast && nextMeta ? `<button class="card-advance" onclick="event.stopPropagation();advanceCard(${c.id})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      Avançar para ${nextMeta.label}
+    </button>` : ''}`;
+
+  div.addEventListener('click', () => openModal(c.id));
+  div.addEventListener('dragstart', () => { dragId = c.id; setTimeout(() => div.classList.add('dragging'), 0); });
+  div.addEventListener('dragend', () => { div.classList.remove('dragging'); dragId = null; });
+  return div;
+}
+
+// ─── ADVANCE ────────────────────────────────────────────
+async function advanceCard(id) {
+  try {
+    const updated = await api.os.avancar(id, '');
+    const idx = cards.findIndex(c => c.id === id);
+    if (idx >= 0) cards[idx] = { ...cards[idx], status: updated.status };
+    render();
+    if (openCardId === id) await refreshModal(id);
+    showToast('success', 'Status atualizado!');
+  } catch(err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+async function advanceFromModal() {
+  if (!openCardId) return;
+  await advanceCard(openCardId);
+}
+
+// ─── DRAG & DROP ────────────────────────────────────────
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+async function onDrop(e, targetStatus) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragId) return;
+  const c = cards.find(x => x.id === dragId);
+  if (!c) return;
+  const fromIdx = STATUS_ORDER.indexOf(c.status);
+  const toIdx   = STATUS_ORDER.indexOf(targetStatus);
+  if (toIdx <= fromIdx) return; // RN004: não retrocede
+
+  // Avança passo a passo até o destino
+  try {
+    let current = c;
+    for (let i = fromIdx; i < toIdx; i++) {
+      const updated = await api.os.avancar(current.id, '');
+      current = { ...current, status: updated.status };
+    }
+    const idx = cards.findIndex(x => x.id === dragId);
+    if (idx >= 0) cards[idx] = { ...cards[idx], status: current.status };
+    render();
+    showToast('success', 'Status atualizado!');
+  } catch(err) {
+    showToast('error', apiErrorMsg(err));
+    loadCards();
+  }
+}
+
+// ─── MODAL ──────────────────────────────────────────────
+async function openModal(id) {
+  openCardId = id;
+  document.getElementById('modal-overlay').classList.add('open');
+  await refreshModal(id);
+}
+
+async function refreshModal(id) {
+  try {
+    const c = await api.os.get(id);
+    const sm_status = STATUS_META[c.status] || {};
+    const priClass = PRIORITY_COLORS[c.prioridade] || '';
+    const priLabel = PRIORITY_LABELS[c.prioridade] || c.prioridade;
+    const nextKey = STATUS_ORDER[STATUS_ORDER.indexOf(c.status) + 1];
+    const nextMeta = nextKey ? STATUS_META[nextKey] : null;
+
+    document.getElementById('modal-title').textContent = c.titulo;
+    document.getElementById('modal-num').textContent = `${c.numero} · Aberto em ${new Date(c.aberta_em).toLocaleDateString('pt-BR')}`;
+    document.getElementById('modal-type').textContent = c.tipo_display || c.tipo;
+    document.getElementById('modal-cat').textContent  = c.categoria || '—';
+    document.getElementById('modal-client').textContent = c.cliente_nome;
+    document.getElementById('modal-date').textContent  = new Date(c.aberta_em).toLocaleDateString('pt-BR');
+    document.getElementById('modal-desc').textContent  = c.descricao;
+
+    document.getElementById('modal-status').innerHTML = `<span class="status-pill" style="background:${sm_status.color}22;color:${sm_status.color}"><span class="dot" style="background:${sm_status.color}"></span>${sm_status.label}</span>`;
+    document.getElementById('modal-priority').innerHTML = `<span class="priority-badge ${priClass}">${priLabel}</span>`;
+
+    // Histórico
+    const hist = c.historico_status || [];
+    document.getElementById('modal-history-list').innerHTML = hist.map(h =>
+      `<div class="history-item"><div class="history-dot"></div><span class="history-text">${h.status_anterior ? h.status_anterior + ' → ' : ''}${h.status_novo} — ${h.alterado_por_nome} — ${new Date(h.alterado_em).toLocaleString('pt-BR')}</span></div>`
+    ).join('');
+
+    const btn = document.getElementById('btn-advance');
+    btn.disabled = !nextMeta;
+    btn.innerHTML = nextMeta
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Avançar para ${nextMeta.label}`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Encerrado`;
+  } catch(err) {
+    showToast('error', 'Erro ao carregar detalhes.');
+  }
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); openCardId = null; }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+// ─── FILTERS ────────────────────────────────────────────
+function setFilter(btn, val) {
+  activeFilter = val;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function filterCards() { render(); }
+
+loadCards();
+
+</script>
+</body>
+</html>

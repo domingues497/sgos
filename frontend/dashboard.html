@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chamados – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  
+</head>
+<body class="page-dashboard">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <span>Chamados</span>
+  </div>
+  <div class="sidebar-section-label">Menu</div>
+  <nav>
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="abrir-chamado.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Abrir Chamado
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Meus Chamados
+    </a>
+    <a class="nav-item" href="kanban.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Kanban
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Clientes
+    </a>
+  </nav>
+  <div class="sidebar-footer sidebar-footer--stack">
+    <div class="sidebar-userrow">
+      <div class="avatar">GM</div>
+      <div class="user-info">
+        <div class="user-name">Gustavo Monteiro</div>
+        <div class="user-role">Funcionário</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="api.logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span class="current">Dashboard</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="today-date"></span>
+      </div>
+      <button class="btn-new" onclick="window.location.href='abrir-chamado.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Chamado
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="section-title">Visão Geral</div>
+    <div class="kpi-grid">
+
+      <div class="kpi-card total">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-label">Total de Chamados</div>
+        <div class="kpi-delta up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          +3 este mês
+        </div>
+      </div>
+
+      <div class="kpi-card aberta">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="kpi-value" id="kpi-aberta">0</div>
+        <div class="kpi-label">Em Aberto</div>
+        <div class="kpi-delta down">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          2 novas hoje
+        </div>
+      </div>
+
+      <div class="kpi-card aguardando">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="kpi-value" id="kpi-aguardando">0</div>
+        <div class="kpi-label">Aguardando</div>
+        <div class="kpi-delta muted">— sem mudança</div>
+      </div>
+
+      <div class="kpi-card andamento">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="kpi-value" id="kpi-andamento">0</div>
+        <div class="kpi-label">Em Andamento</div>
+        <div class="kpi-delta up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          +1 hoje
+        </div>
+      </div>
+
+      <div class="kpi-card encerrada">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="kpi-value" id="kpi-encerrada">0</div>
+        <div class="kpi-label">Encerradas</div>
+        <div class="kpi-delta up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          +5 esta semana
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid-main">
+
+      <!-- BAR CHART – chamados por mês -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Chamados por Mês</span>
+          <a class="panel-action" href="#">Ver relatório</a>
+        </div>
+        <div class="panel-body">
+          <div class="bar-chart" id="bar-chart"></div>
+        </div>
+      </div>
+
+      <!-- DONUT – distribuição por status -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Distribuição por Status</span>
+        </div>
+        <div class="panel-body">
+          <div class="donut-wrap">
+            <svg class="donut-svg" width="130" height="130" viewBox="0 0 130 130">
+              <g id="donut-arcs"></g>
+              <text x="65" y="60" text-anchor="middle" font-family="DM Mono" font-size="22" font-weight="700" fill="#172b4d" id="donut-center-val"></text>
+              <text x="65" y="76" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#97a0af">chamados</text>
+            </svg>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="grid-bottom">
+
+      <!-- RECENT OS TABLE -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Chamados Recentes</span>
+          <a class="panel-action" href="kanban.html">Ver todos</a>
+        </div>
+        <div class="panel-body panel-body--flush">
+          <table class="recent-table">
+            <thead>
+              <tr>
+                <th>Nº</th>
+                <th>Título</th>
+                <th>Status</th>
+                <th>Prioridade</th>
+                <th>Abertura</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="stack-16">
+
+        <!-- PROGRESS BY TYPE -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Chamados por Tipo</span>
+          </div>
+          <div class="panel-body">
+            <div class="progress-list" id="type-progress"></div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Atividade Recente</span>
+          </div>
+          <div class="panel-body panel-body--compact">
+            <div class="activity-list" id="activity-list"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script src="api.js"></script>
+<script>
+Auth.requireAuth();
+fillSidebarUser();
+
+const STATUS_META = {
+  'aberta':       { label:'Aberta',       color:'#3b82f6', bg:'#dbeafe', text:'#1e40af' },
+  'aguardando':   { label:'Aguardando',   color:'#f59e0b', bg:'#fef3c7', text:'#92400e' },
+  'em_andamento': { label:'Em Andamento', color:'#8b5cf6', bg:'#ede9fe', text:'#5b21b6' },
+  'em_avaliacao': { label:'Em Avaliação', color:'#06b6d4', bg:'#cffafe', text:'#155e75' },
+  'encerrada':    { label:'Encerrada',    color:'#10b981', bg:'#d1fae5', text:'#065f46' },
+};
+const PRIORITY_CLASS = { alta:'pri-alta', media:'pri-media', baixa:'pri-baixa', critica:'pri-critica' };
+const PRIORITY_LABEL = { alta:'Alta', media:'Média', baixa:'Baixa', critica:'Crítica' };
+const TYPE_COLORS = { incidente:'#3b82f6', solicitacao:'#8b5cf6', problema:'#ef4444', manutencao:'#10b981' };
+const TYPE_LABELS = { incidente:'Incidente', solicitacao:'Solicitação', problema:'Problema', manutencao:'Manutenção' };
+
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+
+function animCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let cur = 0;
+  const step = Math.max(1, Math.ceil(target / 20));
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, target);
+    el.textContent = cur;
+    if (cur >= target) clearInterval(t);
+  }, 40);
+}
+
+function renderBarChart(results) {
+  const months = {};
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months[d.toLocaleDateString('pt-BR', { month:'short' })] = 0;
+  }
+  results.forEach(c => {
+    const key = new Date(c.aberta_em).toLocaleDateString('pt-BR', { month:'short' });
+    if (key in months) months[key]++;
+  });
+  const data = Object.entries(months);
+  const maxVal = Math.max(...data.map(d => d[1]), 1);
+  const bc = document.getElementById('bar-chart');
+  bc.innerHTML = '';
+  data.forEach(([label, val], i) => {
+    const pct = (val / maxVal * 100).toFixed(1);
+    const isLast = i === data.length - 1;
+    bc.innerHTML += `<div class="bar-group"><div class="bar-wrap"><div class="bar-val">${val}</div><div class="bar" style="height:${Math.max(pct,4)}%;background:${isLast?'#2563eb':'#bfdbfe'};animation:growUp 0.5s ease ${i*0.07}s both"></div></div><div class="bar-label">${label}</div></div>`;
+  });
+  const st = document.createElement('style');
+  st.textContent = `@keyframes growUp{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}`;
+  document.head.appendChild(st);
+}
+
+function renderDonut(kpis) {
+  const entries = [['aberta',kpis.aberta],['aguardando',kpis.aguardando],['em_andamento',kpis.em_andamento],['em_avaliacao',kpis.em_avaliacao],['encerrada',kpis.encerrada]];
+  const total = kpis.total || 1;
+  const cx=65,cy=65,r=48,sw=16,circ=2*Math.PI*r;
+  let offset=0,dHTML='',lHTML='';
+  entries.forEach(([key,count]) => {
+    if(!count) return;
+    const sm=STATUS_META[key], dash=(count/total)*circ, gap=circ-dash, rot=(offset/circ)*360-90;
+    dHTML+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${sm.color}" stroke-width="${sw}" stroke-dasharray="${dash} ${gap}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+    lHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${sm.color}"></div><span class="legend-label">${sm.label}</span><span class="legend-val">${count}</span></div>`;
+    offset+=dash;
+  });
+  document.getElementById('donut-arcs').innerHTML = dHTML;
+  document.getElementById('donut-legend').innerHTML = lHTML;
+  document.getElementById('donut-center-val').textContent = kpis.total;
+}
+
+function renderRecentTable(recentes) {
+  const tbody = document.getElementById('recent-tbody');
+  tbody.innerHTML = '';
+  recentes.forEach(c => {
+    const sm=STATUS_META[c.status]||{};
+    const date=new Date(c.aberta_em).toLocaleDateString('pt-BR');
+    tbody.innerHTML+=`<tr><td><span class="os-num">${c.numero}</span></td><td><span class="os-title">${c.titulo}</span></td><td><span class="status-pill" style="background:${sm.bg};color:${sm.text}"><span class="dot" style="background:${sm.color}"></span>${sm.label}</span></td><td><span class="priority-badge ${PRIORITY_CLASS[c.prioridade]||''}">${PRIORITY_LABEL[c.prioridade]||c.prioridade}</span></td><td style="font-family:'DM Mono',monospace;font-size:.74rem;color:var(--text-muted)">${date}</td></tr>`;
+  });
+}
+
+function renderTypeProgress(porTipo, total) {
+  const tp = document.getElementById('type-progress');
+  tp.innerHTML = '';
+  porTipo.forEach(({tipo,total:cnt}) => {
+    const pct=total?((cnt/total)*100).toFixed(0):0;
+    const color=TYPE_COLORS[tipo]||'#64748b';
+    tp.innerHTML+=`<div class="progress-item"><div class="progress-row"><span class="progress-label"><span class="progress-dot" style="background:${color}"></span>${TYPE_LABELS[tipo]||tipo}</span><span class="progress-val">${cnt} (${pct}%)</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+  });
+}
+
+function renderActivity(recentes) {
+  const ICONS = {
+    check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    arrow:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+    plus:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  };
+  const al = document.getElementById('activity-list');
+  al.innerHTML = '';
+  recentes.slice(0,5).forEach(c => {
+    const sm=STATUS_META[c.status]||{};
+    const icon=c.status==='encerrada'?'check':c.status==='aberta'?'plus':'arrow';
+    const clrs={check:['#d1fae5','#059669'],arrow:['#ede9fe','#7c3aed'],plus:['#dbeafe','#2563eb']};
+    const [bg,ic]=clrs[icon];
+    const time=new Date(c.aberta_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    al.innerHTML+=`<div class="activity-item"><div class="act-icon" style="background:${bg};color:${ic}">${ICONS[icon]}</div><div class="act-body"><div class="act-text"><strong>${c.numero}</strong> – ${c.titulo}</div><div class="act-time">${time}</div></div></div>`;
+  });
+}
+
+async function loadDashboard() {
+  try {
+    const [dash, allOS] = await Promise.all([api.dashboard(), api.os.list({page_size:50})]);
+    const {kpis,por_tipo,recentes} = dash;
+    animCount('kpi-total',     kpis.total);
+    animCount('kpi-aberta',    kpis.aberta);
+    animCount('kpi-aguardando',kpis.aguardando);
+    animCount('kpi-andamento', kpis.em_andamento);
+    animCount('kpi-encerrada', kpis.encerrada);
+    renderBarChart(allOS.results||[]);
+    renderDonut(kpis);
+    renderRecentTable(recentes);
+    renderTypeProgress(por_tipo, kpis.total);
+    renderActivity(recentes);
+  } catch(err) {
+    console.error(err);
+    showToast('error','Erro ao conectar com o servidor.');
+  }
+}
+
+loadDashboard();
+
+</script>
+</body>
+</html>

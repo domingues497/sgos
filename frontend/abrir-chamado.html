@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chamados – Abrir Novo Chamado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  
+</head>
+<body class="page-abrir-chamado">
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span>Chamados</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Abrir Chamado
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Meus Chamados
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Kanban
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Clientes
+      </a>
+    </nav>
+    <div class="sidebar-footer sidebar-footer--stack">
+      <div class="sidebar-userrow">
+        <div class="avatar">GM</div>
+        <div class="user-info">
+          <div class="user-name">Gustavo Monteiro</div>
+          <div class="user-role">Funcionário</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="api.logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <svg class="breadcrumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="breadcrumb-muted">Dashboard</span>
+      <span class="breadcrumb-muted">/</span>
+      <span class="topbar-title">Abrir Novo Chamado</span>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <h2>Abrir Novo Chamado</h2>
+        <p>Preencha os dados abaixo para criar um novo chamado</p>
+      </div>
+
+      <div class="form-section">
+        <div class="grid-2">
+
+          <!-- Cliente (full width) -->
+          <div class="field field-full">
+            <label>Cliente <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="cliente">
+                <option value="">Selecione o cliente</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Tipo de Chamado -->
+          <div class="field">
+            <label>Tipo de Chamado <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="tipo">
+                <option value="">Selecione o tipo</option>
+                <option>Incidente</option>
+                <option>Solicitação de Serviço</option>
+                <option>Problema</option>
+                <option>Manutenção</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Categoria -->
+          <div class="field">
+            <label>Categoria / Assunto <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="categoria">
+                <option value="">Selecione a categoria</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Rede">Rede</option>
+                <option value="Acesso">Acesso</option>
+                <option value="Outros">Outros</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Prioridade -->
+          <div class="field">
+            <label>Prioridade <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="prioridade">
+                <option value="">Selecione a prioridade</option>
+                <option>Baixa</option>
+                <option>Média</option>
+                <option>Alta</option>
+                <option>Crítica</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Urgência -->
+          <div class="field">
+            <label>Urgência <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="urgencia">
+                <option value="">Selecione a urgência</option>
+                <option>Baixa</option>
+                <option>Média</option>
+                <option>Alta</option>
+                <option>Imediata</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Departamento (full width) -->
+          <div class="field field-full">
+            <label>Departamento <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="departamento">
+                <option value="">Selecione o departamento</option>
+                <option>TI</option>
+                <option>Suporte</option>
+                <option>Financeiro</option>
+                <option>RH</option>
+                <option>Comercial</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Título / Resumo (full width) -->
+          <div class="field field-full">
+            <label>Título / Resumo <span class="req">*</span></label>
+            <input type="text" id="titulo" placeholder="Ex: Computador não liga, Solicitar acesso ao sistema..."/>
+          </div>
+
+          <!-- Descrição Detalhada (full width) -->
+          <div class="field field-full">
+            <label>Descrição Detalhada <span class="req">*</span></label>
+            <textarea id="descricao" placeholder="Descreva detalhadamente o problema ou solicitação..."></textarea>
+            <span class="hint">Forneça o máximo de detalhes possível para facilitar o atendimento</span>
+          </div>
+
+          <!-- Anexos (full width) -->
+          <div class="field field-full">
+            <label>Anexos (opcional)</label>
+            <div class="dropzone" onclick="document.getElementById('file-input').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 16 12 12 8 16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+              <p>Clique para fazer upload ou arraste arquivos aqui</p>
+              <small>PDF, DOC, DOCX, JPG, PNG (máx. 10MB cada)</small>
+            </div>
+            <input type="file" id="file-input" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.png"/>
+          </div>
+
+        </div>
+
+        <div class="info-banner">
+          ℹ️ Importante: Após a abertura do chamado, você receberá um número de protocolo e poderá acompanhar o andamento através do painel Kanban ou Dashboard.
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="history.back()">Cancelar</button>
+          <button class="btn-submit" onclick="handleSubmit()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Abrir Chamado
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="api.js"></script>
+<script>
+Auth.requireAuth();
+fillSidebarUser();
+
+// ─── CARREGA METADADOS DA API ────────────────────────────
+async function loadMeta() {
+  try {
+    const meta = await api.os.meta();
+
+    const populate = (id, items) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.value || item;
+        opt.textContent = item.label || item;
+        el.appendChild(opt);
+      });
+    };
+
+    populate('tipo',       meta.tipo);
+    populate('categoria',  meta.tipo.map(t => ({ value: t.label, label: t.label })));
+    populate('prioridade', meta.prioridade);
+    populate('urgencia',   meta.urgencia);
+    populate('departamento', meta.departamentos.map(d => ({ value: d, label: d })));
+
+    // Carrega clientes para o select
+    const clientRes = await api.clientes.list();
+    const clSel = document.getElementById('cliente');
+    if (clSel) {
+      (clientRes.results || []).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nome;
+        clSel.appendChild(opt);
+      });
+    }
+  } catch(err) {
+    showToast('error', 'Erro ao carregar dados do formulário.');
+  }
+}
+
+async function handleSubmit() {
+  const required = ['tipo','prioridade','urgencia','departamento','titulo','descricao'];
+  let ok = true;
+  required.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      if (el) el.style.borderColor = '#ef4444';
+      ok = false;
+    } else if (el) {
+      el.style.borderColor = '';
+    }
+  });
+
+  const clienteEl = document.getElementById('cliente');
+  if (!clienteEl || !clienteEl.value) {
+    if (clienteEl) clienteEl.style.borderColor = '#ef4444';
+    ok = false;
+  }
+
+  if (!ok) { showToast('error','Preencha todos os campos obrigatórios.'); return; }
+
+  const btn = document.querySelector('.btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = btn.innerHTML.replace('Abrir Chamado','Abrindo...');
+
+  try {
+    const payload = {
+      cliente:     parseInt(document.getElementById('cliente').value),
+      titulo:      document.getElementById('titulo').value.trim(),
+      descricao:   document.getElementById('descricao').value.trim(),
+      tipo:        document.getElementById('tipo').value,
+      categoria:   document.getElementById('categoria').value,
+      prioridade:  document.getElementById('prioridade').value,
+      urgencia:    document.getElementById('urgencia').value,
+      departamento:document.getElementById('departamento').value,
+    };
+
+    const os = await api.os.create(payload);
+
+    // Upload de anexos se houver
+    const fileInput = document.getElementById('file-input');
+    if (fileInput && fileInput.files.length > 0) {
+      for (const file of fileInput.files) {
+        try { await api.os.anexos.upload(os.id, file); } catch {}
+      }
+    }
+
+    showToast('success', `Chamado ${os.numero} aberto com sucesso!`);
+    setTimeout(() => window.location.href = 'kanban.html', 1500);
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = btn.innerHTML.replace('Abrindo...','Abrir Chamado');
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+// Drop zone
+const dz = document.querySelector('.dropzone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='#2563eb'; dz.style.background='#eff6ff'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor=''; dz.style.background=''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.style.borderColor=''; dz.style.background='';
+    document.getElementById('file-input').files = e.dataTransfer.files;
+    dz.querySelector('p').textContent = `${e.dataTransfer.files.length} arquivo(s) selecionado(s)`;
+  });
+}
+
+loadMeta();
+
+</script>
+</body>
+</html>
