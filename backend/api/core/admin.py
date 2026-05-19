@@ -72,8 +72,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         ('Etapa',          {'fields': ('etapa', 'etapa_alterada_em')}),
         ('Relacionamentos',{'fields': ('cliente', 'criado_por', 'atribuido_para')}),
         ('Financeiro',     {'fields': ('valor_total',)}),
-        ('Timestamps',     {'fields': ('aberta_em', 'status_alterado_em', 'aguardando_em',
-                                       'em_andamento_em', 'avaliacao_em', 'encerrada_em')}),
+        ('Timestamps',     {'fields': ('aberta_em', 'status_alterado_em')}),
     )
 
 

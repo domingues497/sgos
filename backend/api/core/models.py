@@ -4,7 +4,6 @@ Espelha fielmente o schema PostgreSQL do diagrama (postgres_-_public.png).
 """
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -133,11 +132,46 @@ class OrdemServico(models.Model):
 
     # ── Classificação (FK para tabelas de opções) ──────────
     status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='aberta')
-    prioridade  = models.CharField(max_length=100, blank=True)   # nome da OpcaoPrioridade
-    tipo        = models.CharField(max_length=100, blank=True)   # nome do OpcaoTipo
-    categoria   = models.CharField(max_length=100, blank=True)   # nome da OpcaoCategoria
-    urgencia    = models.CharField(max_length=100, blank=True)   # nome da OpcaoUrgencia
-    departamento = models.CharField(max_length=100, blank=True)  # nome do OpcaoDepartamento
+    prioridade = models.ForeignKey(
+        OpcaoPrioridade,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='ordens_prioridade',
+        db_column='prioridade_id',
+    )
+    tipo = models.ForeignKey(
+        OpcaoTipo,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='ordens_tipo',
+        db_column='tipo_id',
+    )
+    categoria = models.ForeignKey(
+        OpcaoCategoria,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='ordens_categoria',
+        db_column='categoria_id',
+    )
+    urgencia = models.ForeignKey(
+        OpcaoUrgencia,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='ordens_urgencia',
+        db_column='urgencia_id',
+    )
+    departamento = models.ForeignKey(
+        OpcaoDepartamento,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='ordens_departamento',
+        db_column='departamento_id',
+    )
 
     # ── Etapa interna (sub-estágio dentro do status) ───────
     etapa           = models.CharField(max_length=100, blank=True)
@@ -156,11 +190,6 @@ class OrdemServico(models.Model):
     # ── Timestamps por status (diagrama) ───────────────────
     aberta_em         = models.DateTimeField(auto_now_add=True)          # RN003
     status_alterado_em = models.DateTimeField(auto_now=True)
-    aguardando_em     = models.DateTimeField(null=True, blank=True)
-    em_andamento_em   = models.DateTimeField(null=True, blank=True)
-    avaliacao_em      = models.DateTimeField(null=True, blank=True)
-    encerrada_em      = models.DateTimeField(null=True, blank=True)
-    fechada_em        = models.DateTimeField(null=True, blank=True)       # alias de encerrada_em
 
     class Meta:
         db_table = 'ordens_servico'
@@ -188,21 +217,10 @@ class OrdemServico(models.Model):
         idx = self.STATUS_ORDER.index(self.status)
         return self.STATUS_ORDER[idx + 1] if self.pode_avancar() else None
 
-    def registrar_timestamp_status(self):
-        """Registra o timestamp do status recém-atribuído."""
-        now = timezone.now()
-        mapa = {
-            'aguardando':   'aguardando_em',
-            'em_andamento': 'em_andamento_em',
-            'em_avaliacao': 'avaliacao_em',
-            'encerrada':    'encerrada_em',
-        }
-        campo = mapa.get(self.status)
-        if campo and not getattr(self, campo):
-            setattr(self, campo, now)
-        if self.status == 'encerrada':
-            self.fechada_em = now
-            self.encerrada_em = now
+    @property
+    def encerrada_em(self):
+        hs = self.historico_status.filter(status_novo='encerrada').order_by('-alterado_em').first()
+        return hs.alterado_em if hs else None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -319,7 +337,14 @@ class AnotacaoERP(models.Model):
 class PerfilUsuario(models.Model):
     usuario       = models.OneToOneField(User, on_delete=models.CASCADE,
                                          related_name='perfil', db_column='usuario_id')
-    departamento  = models.CharField(max_length=100, blank=True)
+    departamento = models.ForeignKey(
+        OpcaoDepartamento,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='perfis',
+        db_column='departamento_id',
+    )
     criado_em     = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 

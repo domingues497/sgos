@@ -3,7 +3,19 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import Cliente, OrdemServico, HistoricoStatus, Iteracao, Anexo, PerfilUsuario
+from .models import (
+    Cliente,
+    OrdemServico,
+    HistoricoStatus,
+    Iteracao,
+    Anexo,
+    PerfilUsuario,
+    OpcaoDepartamento,
+    OpcaoPrioridade,
+    OpcaoTipo,
+    OpcaoCategoria,
+    OpcaoUrgencia,
+)
 
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -31,7 +43,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         departamento = validated_data.pop('departamento', '')
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
-        PerfilUsuario.objects.create(usuario=user, departamento=departamento)
+        dep_fk = None
+        if departamento:
+            dep_fk, _ = OpcaoDepartamento.objects.get_or_create(nome=departamento)
+        PerfilUsuario.objects.create(usuario=user, departamento=dep_fk)
         return user
 
 
@@ -44,7 +59,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_departamento(self, obj):
         try:
-            return obj.perfil.departamento
+            perfil = obj.perfil
+            if getattr(perfil, 'departamento_id', None):
+                return perfil.departamento.nome
+            return ''
         except PerfilUsuario.DoesNotExist:
             return ''
 
@@ -117,8 +135,14 @@ class OrdemServicoListSerializer(serializers.ModelSerializer):
     cliente_nome  = serializers.CharField(source='cliente.nome', read_only=True)
     criado_por_nome = serializers.SerializerMethodField()
     status_display    = serializers.CharField(source='get_status_display',    read_only=True)
-    prioridade_display = serializers.CharField(source='get_prioridade_display', read_only=True)
-    tipo_display      = serializers.CharField(source='get_tipo_display',      read_only=True)
+    prioridade = serializers.SerializerMethodField()
+    tipo = serializers.SerializerMethodField()
+    categoria = serializers.SerializerMethodField()
+    urgencia = serializers.SerializerMethodField()
+    departamento = serializers.SerializerMethodField()
+    prioridade_display = serializers.SerializerMethodField()
+    tipo_display = serializers.SerializerMethodField()
+    encerrada_em = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model  = OrdemServico
@@ -134,6 +158,37 @@ class OrdemServicoListSerializer(serializers.ModelSerializer):
             return obj.criado_por.get_full_name() or obj.criado_por.username
         return ''
 
+    def get_prioridade(self, obj):
+        if getattr(obj, 'prioridade_id', None):
+            return obj.prioridade.nome
+        return ''
+
+    def get_tipo(self, obj):
+        if getattr(obj, 'tipo_id', None):
+            return obj.tipo.nome
+        return ''
+
+    def get_categoria(self, obj):
+        if getattr(obj, 'categoria_id', None):
+            return obj.categoria.nome
+        return ''
+
+    def get_urgencia(self, obj):
+        if getattr(obj, 'urgencia_id', None):
+            return obj.urgencia.nome
+        return ''
+
+    def get_departamento(self, obj):
+        if getattr(obj, 'departamento_id', None):
+            return obj.departamento.nome
+        return ''
+
+    def get_prioridade_display(self, obj):
+        return self.get_prioridade(obj)
+
+    def get_tipo_display(self, obj):
+        return self.get_tipo(obj)
+
 
 class OrdemServicoDetailSerializer(serializers.ModelSerializer):
     """Serializer completo com histórico, iterações e anexos."""
@@ -141,8 +196,14 @@ class OrdemServicoDetailSerializer(serializers.ModelSerializer):
     cliente_telefone = serializers.CharField(source='cliente.telefone', read_only=True)
     criado_por_nome = serializers.CharField(source='criado_por.username', default='', read_only=True)
     status_display  = serializers.CharField(source='get_status_display', read_only=True)
-    prioridade_display = serializers.CharField(source='get_prioridade_display', read_only=True)
-    tipo_display    = serializers.CharField(source='get_tipo_display', read_only=True)
+    prioridade = serializers.SerializerMethodField()
+    tipo = serializers.SerializerMethodField()
+    categoria = serializers.SerializerMethodField()
+    urgencia = serializers.SerializerMethodField()
+    departamento = serializers.SerializerMethodField()
+    prioridade_display = serializers.SerializerMethodField()
+    tipo_display = serializers.SerializerMethodField()
+    encerrada_em = serializers.DateTimeField(read_only=True)
     historico_status = HistoricoStatusSerializer(many=True, read_only=True)
     iteracoes        = IteracaoSerializer(many=True, read_only=True)
     anexos           = AnexoSerializer(many=True, read_only=True)
@@ -162,9 +223,46 @@ class OrdemServicoDetailSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('numero', 'aberta_em', 'status_alterado_em')
 
+    def get_prioridade(self, obj):
+        if getattr(obj, 'prioridade_id', None):
+            return obj.prioridade.nome
+        return ''
+
+    def get_tipo(self, obj):
+        if getattr(obj, 'tipo_id', None):
+            return obj.tipo.nome
+        return ''
+
+    def get_categoria(self, obj):
+        if getattr(obj, 'categoria_id', None):
+            return obj.categoria.nome
+        return ''
+
+    def get_urgencia(self, obj):
+        if getattr(obj, 'urgencia_id', None):
+            return obj.urgencia.nome
+        return ''
+
+    def get_departamento(self, obj):
+        if getattr(obj, 'departamento_id', None):
+            return obj.departamento.nome
+        return ''
+
+    def get_prioridade_display(self, obj):
+        return self.get_prioridade(obj)
+
+    def get_tipo_display(self, obj):
+        return self.get_tipo(obj)
+
 
 class OrdemServicoCreateSerializer(serializers.ModelSerializer):
     """RF007: Criação de OS – RN002: cliente deve existir."""
+    tipo = serializers.CharField(required=False, allow_blank=True, default='')
+    categoria = serializers.CharField(required=False, allow_blank=True, default='')
+    prioridade = serializers.CharField(required=False, allow_blank=True, default='')
+    urgencia = serializers.CharField(required=False, allow_blank=True, default='')
+    departamento = serializers.CharField(required=False, allow_blank=True, default='')
+
     class Meta:
         model  = OrdemServico
         fields = (
@@ -176,6 +274,75 @@ class OrdemServicoCreateSerializer(serializers.ModelSerializer):
         if not Cliente.objects.filter(pk=value.pk).exists():
             raise serializers.ValidationError('Cliente não encontrado.')
         return value
+
+    def validate_prioridade(self, value):
+        if value and not OpcaoPrioridade.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Prioridade inválida.')
+        return value
+
+    def validate_tipo(self, value):
+        if value and not OpcaoTipo.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Tipo inválido.')
+        return value
+
+    def validate_categoria(self, value):
+        if value and not OpcaoCategoria.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Categoria inválida.')
+        return value
+
+    def validate_urgencia(self, value):
+        if value and not OpcaoUrgencia.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Urgência inválida.')
+        return value
+
+    def validate_departamento(self, value):
+        if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Departamento inválido.')
+        return value
+
+    def create(self, validated_data):
+        prioridade = validated_data.pop('prioridade', '') or ''
+        tipo = validated_data.pop('tipo', '') or ''
+        categoria = validated_data.pop('categoria', '') or ''
+        urgencia = validated_data.pop('urgencia', '') or ''
+        departamento = validated_data.pop('departamento', '') or ''
+
+        if prioridade:
+            validated_data['prioridade'] = OpcaoPrioridade.objects.get(nome=prioridade)
+        if tipo:
+            validated_data['tipo'] = OpcaoTipo.objects.get(nome=tipo)
+        if categoria:
+            validated_data['categoria'] = OpcaoCategoria.objects.get(nome=categoria)
+        if urgencia:
+            validated_data['urgencia'] = OpcaoUrgencia.objects.get(nome=urgencia)
+        if departamento:
+            validated_data['departamento'] = OpcaoDepartamento.objects.get(nome=departamento)
+
+        return OrdemServico.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        prioridade = validated_data.pop('prioridade', None)
+        tipo = validated_data.pop('tipo', None)
+        categoria = validated_data.pop('categoria', None)
+        urgencia = validated_data.pop('urgencia', None)
+        departamento = validated_data.pop('departamento', None)
+
+        for k, v in validated_data.items():
+            setattr(instance, k, v)
+
+        if prioridade is not None:
+            instance.prioridade = OpcaoPrioridade.objects.get(nome=prioridade) if prioridade else None
+        if tipo is not None:
+            instance.tipo = OpcaoTipo.objects.get(nome=tipo) if tipo else None
+        if categoria is not None:
+            instance.categoria = OpcaoCategoria.objects.get(nome=categoria) if categoria else None
+        if urgencia is not None:
+            instance.urgencia = OpcaoUrgencia.objects.get(nome=urgencia) if urgencia else None
+        if departamento is not None:
+            instance.departamento = OpcaoDepartamento.objects.get(nome=departamento) if departamento else None
+
+        instance.save()
+        return instance
 
 
 class AvancarStatusSerializer(serializers.Serializer):

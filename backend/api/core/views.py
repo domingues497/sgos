@@ -103,8 +103,8 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
     """RF007/RF009/RF011: Listar, criar e pesquisar OS."""
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['numero', 'titulo', 'cliente__nome', 'departamento']
-    ordering_fields = ['aberta_em', 'status', 'prioridade']
+    search_fields = ['numero', 'titulo', 'cliente__nome', 'departamento__nome']
+    ordering_fields = ['aberta_em', 'status', 'prioridade__nivel']
     ordering = ['-aberta_em']
 
     def get_serializer_class(self):
@@ -113,7 +113,15 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
         return OrdemServicoListSerializer
 
     def get_queryset(self):
-        qs = OrdemServico.objects.select_related('cliente', 'criado_por')
+        qs = OrdemServico.objects.select_related(
+            'cliente',
+            'criado_por',
+            'prioridade',
+            'tipo',
+            'categoria',
+            'urgencia',
+            'departamento',
+        )
         # Filtros opcionais
         status_param = self.request.query_params.get('status')
         prioridade   = self.request.query_params.get('prioridade')
@@ -123,9 +131,15 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
         if status_param:
             qs = qs.filter(status=status_param)
         if prioridade:
-            qs = qs.filter(prioridade=prioridade)
+            if prioridade.isdigit():
+                qs = qs.filter(prioridade_id=int(prioridade))
+            else:
+                qs = qs.filter(prioridade__nome=prioridade)
         if tipo:
-            qs = qs.filter(tipo=tipo)
+            if tipo.isdigit():
+                qs = qs.filter(tipo_id=int(tipo))
+            else:
+                qs = qs.filter(tipo__nome=tipo)
         if cliente_id:
             qs = qs.filter(cliente_id=cliente_id)
         return qs
@@ -204,8 +218,6 @@ class AvancarStatusView(APIView):
         novo_status = os_obj.proximo_status()
 
         os_obj.status = novo_status
-        if novo_status == 'encerrada':
-            os_obj.encerrada_em = timezone.now()
         os_obj.save()
 
         HistoricoStatus.objects.create(
@@ -286,13 +298,11 @@ def dashboard_view(request):
         'total_clientes': Cliente.objects.count(),
     }
 
-    por_tipo = list(
-        qs.values('tipo').annotate(total=Count('id')).order_by('-total')
-    )
+    por_tipo_raw = qs.values('tipo__nome').annotate(total=Count('id')).order_by('-total')
+    por_tipo = [{'tipo': r['tipo__nome'] or '', 'total': r['total']} for r in por_tipo_raw]
 
-    por_prioridade = list(
-        qs.values('prioridade').annotate(total=Count('id')).order_by('-total')
-    )
+    por_prioridade_raw = qs.values('prioridade__nome').annotate(total=Count('id')).order_by('-total')
+    por_prioridade = [{'prioridade': r['prioridade__nome'] or '', 'total': r['total']} for r in por_prioridade_raw]
 
     # Últimas 5 OS para tabela recente
     recentes = OrdemServicoListSerializer(

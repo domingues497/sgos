@@ -26,12 +26,22 @@ class Command(BaseCommand):
         if not User.objects.filter(username='admin').exists():
             adm = User.objects.create_superuser('admin','admin@sgos.com','admin123',
                                                 first_name='Administrador')
-            PerfilUsuario.objects.get_or_create(usuario=adm, defaults={'departamento':'TI'})
+            PerfilUsuario.objects.get_or_create(
+                usuario=adm,
+                defaults={
+                    'departamento': OpcaoDepartamento.objects.get(nome='TI'),
+                },
+            )
 
         if not User.objects.filter(username='gustavo').exists():
             u = User.objects.create_user('gustavo','gustavo@sgos.com','gustavo123',
                                          first_name='Gustavo', last_name='Monteiro')
-            PerfilUsuario.objects.get_or_create(usuario=u, defaults={'departamento':'Suporte'})
+            PerfilUsuario.objects.get_or_create(
+                usuario=u,
+                defaults={
+                    'departamento': OpcaoDepartamento.objects.get(nome='Suporte'),
+                },
+            )
 
         func = User.objects.get(username='gustavo')
 
@@ -64,6 +74,11 @@ class Command(BaseCommand):
 
             for d in os_data:
                 alvo = d.pop('status_alvo')
+                d['prioridade'] = OpcaoPrioridade.objects.get(nome=d['prioridade'])
+                d['tipo'] = OpcaoTipo.objects.get(nome=d['tipo'])
+                d['categoria'] = OpcaoCategoria.objects.get(nome=d['categoria'])
+                d['urgencia'] = OpcaoUrgencia.objects.get(nome=d['urgencia'])
+                d['departamento'] = OpcaoDepartamento.objects.get(nome=d['departamento'])
                 os_obj = OrdemServico.objects.create(criado_por=func, **d)
                 HistoricoStatus.objects.create(
                     os=os_obj, status_anterior='', status_novo='aberta',
@@ -72,11 +87,10 @@ class Command(BaseCommand):
                 idx_alvo = seq.index(alvo)
                 for i in range(1, idx_alvo + 1):
                     os_obj.status = seq[i]
-                    os_obj.registrar_timestamp_status()
                     os_obj.save()
                     HistoricoStatus.objects.create(
                         os=os_obj, status_anterior=seq[i-1], status_novo=seq[i], alterado_por=func)
 
                 Iteracao.objects.create(os=os_obj, criado_por=func, texto='Análise inicial realizada. Aguardando resposta do cliente.')
 
-        self.stdout.write(self.style.SUCCESS('✅  Seed OK! admin/admin123 | gustavo/gustavo123'))
+        self.stdout.write(self.style.SUCCESS('Seed OK! admin/admin123 | gustavo/gustavo123'))
