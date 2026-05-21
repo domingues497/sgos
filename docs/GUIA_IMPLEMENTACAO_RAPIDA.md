@@ -9,7 +9,7 @@
 
 ```bash
 # 1. Backup completo
-docker-compose exec db pg_dump -U sgos_user sgos > backup_sgos_$(date +%Y%m%d_%H%M%S).sql
+pg_dump -U <SEU_USUARIO> sgos > backup_sgos_$(date +%Y%m%d_%H%M%S).sql
 
 # 2. Verificar backup
 ls -lh backup_sgos_*.sql
@@ -326,7 +326,7 @@ TOKEN="seu_token_aqui"
 
 # ✅ GET funcionando
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8000/api/workorders/
+  http://localhost:8010/api/workorders/
 
 # ✅ POST com novo formato (IDs)
 curl -X POST \
@@ -343,7 +343,7 @@ curl -X POST \
     "urgencia_id": 1,
     "departamento_id": 1
   }' \
-  http://localhost:8000/api/workorders/
+  http://localhost:8010/api/workorders/
 
 # 3. Verificar resposta (deve incluir prioridade_detalhes, etc)
 # {

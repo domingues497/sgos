@@ -104,28 +104,15 @@ core/
 
 ## Banco de Dados PostgreSQL
 
-### Setup com Docker (recomendado)
-
-```bash
-# Sobe PostgreSQL + Django API automaticamente
-docker-compose up --build
-
-# Acesso: http://localhost:8000/api/
-```
-
-### Setup manual sem Docker
-
 ```bash
 # 1. Instale o PostgreSQL e crie o banco
 createdb sgos
-createuser sgos_user --pwprompt
-
 # 2. Configure variáveis de ambiente
 cp .env.example .env
 # edite .env com suas credenciais
 
 # 3. Execute o schema SQL (cria tabelas, índices, triggers e views)
-psql -U sgos_user -d sgos -f init.sql
+psql -U <SEU_USUARIO> -d sgos -f init.sql
 
 # 4. Execute as migrations Django (tabelas do admin/auth)
 python manage.py migrate

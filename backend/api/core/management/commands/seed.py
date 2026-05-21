@@ -33,9 +33,9 @@ class Command(BaseCommand):
                 },
             )
 
-        if not User.objects.filter(username='gustavo').exists():
-            u = User.objects.create_user('gustavo','gustavo@sgos.com','gustavo123',
-                                         first_name='Gustavo', last_name='Monteiro')
+        if not User.objects.filter(username='rafael').exists():
+            u = User.objects.create_user('rafael','rafael@sgos.com','rafael123',
+                                         first_name='Rafael', last_name='Domingues')
             PerfilUsuario.objects.get_or_create(
                 usuario=u,
                 defaults={
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 },
             )
 
-        func = User.objects.get(username='gustavo')
+        func = User.objects.get(username='rafael')
 
         # ── Clientes ───────────────────────────────────────────────────────────
         dados_clientes = [
@@ -93,4 +93,4 @@ class Command(BaseCommand):
 
                 Iteracao.objects.create(os=os_obj, criado_por=func, texto='Análise inicial realizada. Aguardando resposta do cliente.')
 
-        self.stdout.write(self.style.SUCCESS('Seed OK! admin/admin123 | gustavo/gustavo123'))
+        self.stdout.write(self.style.SUCCESS('Seed OK! admin/admin123 | rafael/rafael123'))

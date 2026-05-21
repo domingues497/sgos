@@ -4,7 +4,70 @@
  * Todas as páginas importam este arquivo.
  */
 
-var API_BASE = window.API_BASE || 'http://127.0.0.1:8000/api';
+const API_BASE_STORAGE_KEY = 'sgos_api_base';
+
+var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || 'http://127.0.0.1:8010/api';
+window.SGOS_API_BASE = API_BASE;
+
+let _apiBaseReadyPromise = null;
+
+function _getApiBaseCandidates() {
+  if (window.API_BASE) return [window.API_BASE];
+
+  const host = window.location.hostname || '127.0.0.1';
+  const bases = [
+    `http://${host}:8010/api`,
+  ];
+
+  if (host === 'localhost') {
+    bases.push('http://127.0.0.1:8010/api');
+  }
+  if (host === '127.0.0.1') {
+    bases.push('http://localhost:8010/api');
+  }
+
+  const seen = new Set();
+  return bases.filter(b => (seen.has(b) ? false : (seen.add(b), true)));
+}
+
+async function _probeApiBase(base) {
+  try {
+    const res = await fetch(`${base}/auth/register/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    return res.status !== 404;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureApiBase() {
+  if (_apiBaseReadyPromise) return _apiBaseReadyPromise;
+  _apiBaseReadyPromise = (async () => {
+    if (window.API_BASE) return;
+    const stored = localStorage.getItem(API_BASE_STORAGE_KEY);
+    if (stored) API_BASE = stored;
+    window.SGOS_API_BASE = API_BASE;
+
+    const okCurrent = await _probeApiBase(API_BASE);
+    if (okCurrent) return;
+    localStorage.removeItem(API_BASE_STORAGE_KEY);
+
+    const candidates = _getApiBaseCandidates();
+    for (const base of candidates) {
+      const ok = await _probeApiBase(base);
+      if (ok) {
+        API_BASE = base;
+        localStorage.setItem(API_BASE_STORAGE_KEY, base);
+        window.SGOS_API_BASE = API_BASE;
+        return;
+      }
+    }
+  })();
+  return _apiBaseReadyPromise;
+}
 
 // ── Token management ──────────────────────────────────────────────────────────
 const Auth = {
@@ -37,13 +100,22 @@ const Auth = {
 
 // ── HTTP helper ───────────────────────────────────────────────────────────────
 async function request(method, path, body = null, isForm = false) {
-  const headers = { 'Authorization': `Bearer ${Auth.getAccess()}` };
+  await ensureApiBase();
+
+  const access = Auth.getAccess();
+  const headers = {};
+  if (access) headers['Authorization'] = `Bearer ${access}`;
   if (!isForm) headers['Content-Type'] = 'application/json';
 
   const opts = { method, headers };
   if (body) opts.body = isForm ? body : JSON.stringify(body);
 
-  let res = await fetch(`${API_BASE}${path}`, opts);
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, opts);
+  } catch (e) {
+    throw { status: 0, data: null, message: e?.message || 'Falha ao conectar no servidor.' };
+  }
 
   // Token expirado → tenta refresh
   if (res.status === 401) {
@@ -61,7 +133,14 @@ async function request(method, path, body = null, isForm = false) {
   // Sem conteúdo (DELETE 204)
   if (res.status === 204) return null;
 
-  const data = await res.json();
+  let data = null;
+  try {
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) data = await res.json();
+    else data = await res.text();
+  } catch {
+    data = null;
+  }
   if (!res.ok) throw { status: res.status, data };
   return data;
 }
@@ -94,23 +173,39 @@ const api = {
 
   // ── Auth ──────────────────────────────────────────────
   async login(username, password) {
+    await ensureApiBase();
     const res = await fetch(`${API_BASE}/auth/login/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-    const data = await res.json();
+    let data = null;
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) data = await res.json();
+      else data = await res.text();
+    } catch {
+      data = null;
+    }
     if (!res.ok) throw { status: res.status, data };
     return data;
   },
 
   async register(payload) {
+    await ensureApiBase();
     const res = await fetch(`${API_BASE}/auth/register/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
+    let data = null;
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) data = await res.json();
+      else data = await res.text();
+    } catch {
+      data = null;
+    }
     if (!res.ok) throw { status: res.status, data };
     return data;
   },
@@ -183,7 +278,7 @@ function showToast(type, msg) {
 
 /** Extrai mensagem legível de um erro da API */
 function apiErrorMsg(err) {
-  if (!err?.data) return 'Erro de conexão com o servidor.';
+  if (!err?.data) return err?.message || 'Erro de conexão com o servidor.';
   const d = err.data;
   if (typeof d === 'string') return d;
   // Pega o primeiro valor de campo com erro

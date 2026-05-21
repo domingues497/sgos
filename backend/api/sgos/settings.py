@@ -3,6 +3,24 @@ from datetime import timedelta
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+def _load_dotenv(dotenv_path: Path) -> None:
+    try:
+        content = dotenv_path.read_text(encoding="utf-8")
+    except OSError:
+        return
+
+    for raw_line in content.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("\"'").strip()
+        if key:
+            os.environ.setdefault(key, value)
+
+_load_dotenv(BASE_DIR / ".env")
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-sgos-dev-troque-em-producao')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
@@ -41,7 +59,6 @@ TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'DIR
 WSGI_APPLICATION = 'sgos.wsgi.application'
 
 # ── Banco de Dados ─────────────────────────────────────────────────────────────
-# Usa PostgreSQL se DATABASE_URL estiver definida, senão SQLite (dev local)
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 if DATABASE_URL:
