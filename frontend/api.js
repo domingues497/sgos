@@ -6,7 +6,25 @@
 
 const API_BASE_STORAGE_KEY = 'sgos_api_base';
 
-var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || 'http://127.0.0.1:8010/api';
+function _isLocalHost(host) {
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
+function _normalizeApiBase(input) {
+  const u = new URL(String(input || '').trim());
+  u.search = '';
+  u.hash = '';
+
+  let path = (u.pathname || '/').replace(/\/+$/g, '');
+  if (!path.endsWith('/api')) path = `${path}/api`;
+  u.pathname = path;
+
+  return u.toString().replace(/\/+$/g, '');
+}
+
+const __host = window.location.hostname || '127.0.0.1';
+const __defaultLocal = 'http://127.0.0.1:8010/api';
+var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || (_isLocalHost(__host) ? __defaultLocal : '');
 window.SGOS_API_BASE = API_BASE;
 
 let _apiBaseReadyPromise = null;
@@ -50,17 +68,28 @@ async function ensureApiBase() {
     const stored = localStorage.getItem(API_BASE_STORAGE_KEY);
     if (stored) {
       try {
-        const u = new URL(stored);
-        if (u.port === '8010') {
-          API_BASE = stored;
-        } else {
-          localStorage.removeItem(API_BASE_STORAGE_KEY);
-        }
+        API_BASE = _normalizeApiBase(stored);
       } catch {
         localStorage.removeItem(API_BASE_STORAGE_KEY);
       }
     }
     window.SGOS_API_BASE = API_BASE;
+
+    if (!API_BASE && !_isLocalHost(__host)) {
+      const input = window.prompt(
+        'Cole a URL da API do SGOS (ex: https://seu-backend.up.railway.app/api)',
+        '',
+      );
+      if (input) {
+        try {
+          API_BASE = _normalizeApiBase(input);
+          localStorage.setItem(API_BASE_STORAGE_KEY, API_BASE);
+          window.SGOS_API_BASE = API_BASE;
+        } catch {
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+        }
+      }
+    }
 
     const okCurrent = await _probeApiBase(API_BASE);
     if (okCurrent) return;
