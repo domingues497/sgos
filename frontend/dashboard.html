@@ -20,7 +20,7 @@
   </div>
   <div class="sidebar-section-label">Menu</div>
   <nav>
-    <a class="nav-item active" href="#">
+    <a class="nav-item active" href="dashboard.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
@@ -28,7 +28,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       Abrir Chamado
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="kanban.html?view=mine">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Meus Chamados
     </a>
@@ -36,9 +36,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
       Kanban
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="clientes.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Clientes
+    </a>
+    <a class="nav-item" id="nav-tecnicos" href="#tecnicos" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+      Técnicos
     </a>
   </nav>
   <div class="sidebar-footer sidebar-footer--stack">
@@ -228,13 +232,72 @@
       </div>
     </div>
 
+    <div class="section-title" id="admin-section-title" style="display:none;">Administração</div>
+    <div class="panel" id="tech-panel" style="display:none;">
+      <div class="panel-header">
+        <span class="panel-title" id="tecnicos">Técnicos</span>
+      </div>
+      <div class="panel-body">
+        <div class="tech-form">
+          <div class="tech-field">
+            <label>Nome</label>
+            <input id="tech-first" placeholder="Primeiro nome"/>
+          </div>
+          <div class="tech-field">
+            <label>Sobrenome</label>
+            <input id="tech-last" placeholder="Sobrenome"/>
+          </div>
+          <div class="tech-field">
+            <label>Usuário</label>
+            <input id="tech-user" placeholder="usuario"/>
+          </div>
+          <div class="tech-field">
+            <label>Email</label>
+            <input id="tech-email" placeholder="email@empresa.com"/>
+          </div>
+          <div class="tech-field">
+            <label>Departamento</label>
+            <select id="tech-dept"></select>
+          </div>
+          <div class="tech-field">
+            <label>Senha</label>
+            <input id="tech-pass" type="password" placeholder="mín. 6 caracteres"/>
+          </div>
+          <div class="tech-actions">
+            <button class="btn-new" onclick="createTech()">Cadastrar técnico</button>
+          </div>
+        </div>
+
+        <div class="tech-toolbar">
+          <input id="tech-search" placeholder="Buscar técnico..." oninput="renderTechTable()"/>
+          <button class="tech-btn" onclick="loadTechs()">Atualizar</button>
+        </div>
+
+        <div class="panel-body--flush">
+          <table class="recent-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Usuário</th>
+                <th>Email</th>
+                <th>Departamento</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tech-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
 <script src="api.js"></script>
 <script>
-Auth.requireAuth();
-fillSidebarUser();
+const __authed = Auth.requireAuth();
+if (__authed) fillSidebarUser();
 
 const STATUS_META = {
   'aberta':       { label:'Aberta',       color:'#3b82f6', bg:'#dbeafe', text:'#1e40af' },
@@ -359,11 +422,134 @@ async function loadDashboard() {
     renderActivity(recentes);
   } catch(err) {
     console.error(err);
+    if (err && err.status === 401) return;
     showToast('error','Erro ao conectar com o servidor.');
   }
 }
 
-loadDashboard();
+let __isAdmin = false;
+let __techs = [];
+let __deptOptions = [];
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function getTechArray(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+function fillDeptSelect() {
+  const sel = document.getElementById('tech-dept');
+  if (!sel) return;
+  sel.innerHTML = `<option value="">—</option>` + __deptOptions.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+}
+
+async function initAdminTechs() {
+  try {
+    const ov = await api.me.overview();
+    __isAdmin = !!ov?.user?.is_admin;
+    if (!__isAdmin) return;
+
+    const navTech = document.getElementById('nav-tecnicos');
+    if (navTech) navTech.style.display = '';
+
+    const section = document.getElementById('admin-section-title');
+    const panel = document.getElementById('tech-panel');
+    if (section) section.style.display = '';
+    if (panel) panel.style.display = '';
+
+    const meta = await api.os.meta();
+    __deptOptions = meta?.departamentos || [];
+    fillDeptSelect();
+    await loadTechs();
+  } catch {
+  }
+}
+
+async function loadTechs() {
+  try {
+    const res = await api.tecnicos.list({ page_size: 500 });
+    __techs = getTechArray(res);
+    renderTechTable();
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+function renderTechTable() {
+  const q = (document.getElementById('tech-search')?.value || '').trim().toLowerCase();
+  const tbody = document.getElementById('tech-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const rows = getTechArray(__techs).filter(t => {
+    if (!q) return true;
+    const s = `${t.first_name || ''} ${t.last_name || ''} ${t.username || ''} ${t.email || ''} ${t.departamento || ''}`.toLowerCase();
+    return s.includes(q);
+  });
+  rows.forEach(t => {
+    const name = `${t.first_name || ''} ${t.last_name || ''}`.trim() || t.username;
+    const status = t.is_active ? 'Ativo' : 'Inativo';
+    const action = t.is_active ? 'Desativar' : 'Ativar';
+    tbody.innerHTML += `
+      <tr>
+        <td><span class="os-title">${escapeHtml(name)}</span></td>
+        <td><span class="os-num">${escapeHtml(t.username)}</span></td>
+        <td>${escapeHtml(t.email || '')}</td>
+        <td>${escapeHtml(t.departamento || '')}</td>
+        <td>${escapeHtml(status)}</td>
+        <td><button class="tech-btn" onclick="toggleTechActive(${t.id}, ${t.is_active ? 'true' : 'false'})">${action}</button></td>
+      </tr>`;
+  });
+}
+
+async function createTech() {
+  if (!__isAdmin) return;
+  const first_name = (document.getElementById('tech-first')?.value || '').trim();
+  const last_name  = (document.getElementById('tech-last')?.value || '').trim();
+  const username   = (document.getElementById('tech-user')?.value || '').trim();
+  const email      = (document.getElementById('tech-email')?.value || '').trim();
+  const departamento = (document.getElementById('tech-dept')?.value || '').trim();
+  const password   = (document.getElementById('tech-pass')?.value || '');
+
+  if (!username || !email || !password) {
+    showToast('error', 'Preencha usuário, email e senha.');
+    return;
+  }
+  try {
+    const created = await api.tecnicos.create({ username, first_name, last_name, email, password, departamento });
+    __techs = [created, ...getTechArray(__techs)];
+    renderTechTable();
+    document.getElementById('tech-first').value = '';
+    document.getElementById('tech-last').value = '';
+    document.getElementById('tech-user').value = '';
+    document.getElementById('tech-email').value = '';
+    document.getElementById('tech-pass').value = '';
+    document.getElementById('tech-dept').value = '';
+    showToast('success', 'Técnico cadastrado!');
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+async function toggleTechActive(id, current) {
+  if (!__isAdmin) return;
+  try {
+    const updated = await api.tecnicos.update(id, { is_active: !current });
+    __techs = getTechArray(__techs).map(t => t.id === id ? updated : t);
+    renderTechTable();
+    showToast('success', updated.is_active ? 'Técnico ativado.' : 'Técnico desativado.');
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+if (__authed) {
+  loadDashboard();
+  initAdminTechs();
+}
 
 </script>
 </body>

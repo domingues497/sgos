@@ -48,7 +48,18 @@ async function ensureApiBase() {
   _apiBaseReadyPromise = (async () => {
     if (window.API_BASE) return;
     const stored = localStorage.getItem(API_BASE_STORAGE_KEY);
-    if (stored) API_BASE = stored;
+    if (stored) {
+      try {
+        const u = new URL(stored);
+        if (u.port === '8010') {
+          API_BASE = stored;
+        } else {
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+        }
+      } catch {
+        localStorage.removeItem(API_BASE_STORAGE_KEY);
+      }
+    }
     window.SGOS_API_BASE = API_BASE;
 
     const okCurrent = await _probeApiBase(API_BASE);
@@ -89,7 +100,11 @@ const Auth = {
 
   /** Redireciona para login se não autenticado */
   requireAuth() {
-    if (!this.isLoggedIn()) { window.location.href = 'login.html'; }
+    if (!this.isLoggedIn()) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
   },
 
   /** Redireciona para dashboard se já autenticado */
@@ -126,7 +141,7 @@ async function request(method, path, body = null, isForm = false) {
     } else {
       Auth.clear();
       window.location.href = 'login.html';
-      return;
+      throw { status: 401, data: null, message: 'Não autenticado.' };
     }
   }
 
@@ -234,6 +249,7 @@ const api = {
     get:     (id)          => api.get(`/workorders/${id}/`),
     create:  (body)        => api.post('/workorders/', body),
     avancar: (id, obs='')  => api.patch(`/workorders/${id}/etapa/`, { observacao: obs }),
+    assign:  (id, body = {}) => api.patch(`/workorders/${id}/assign/`, body),
     delete:  (id)          => api.delete(`/workorders/${id}/`),
     meta:    ()            => api.get('/workorders/meta/'),
     iteracoes: {
@@ -248,8 +264,25 @@ const api = {
     },
   },
 
+  tecnicos: {
+    list:   (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/tecnicos/${qs ? '?' + qs : ''}`);
+    },
+    create: (body)        => api.post('/tecnicos/', body),
+    update: (id, body)    => api.patch(`/tecnicos/${id}/`, body),
+    disable:(id)          => api.delete(`/tecnicos/${id}/`),
+  },
+
   // ── Dashboard ─────────────────────────────────────────
   dashboard: () => api.get('/dashboard/'),
+
+  me: {
+    overview: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/me/overview/${qs ? '?' + qs : ''}`);
+    },
+  },
 };
 
 // ── Toast utility (shared across pages) ──────────────────────────────────────
@@ -299,4 +332,23 @@ function fillSidebarUser() {
   if (nameEl) nameEl.textContent = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user.username;
   if (roleEl) roleEl.textContent = user.departamento || 'Funcionário';
   if (avEl)   avEl.textContent   = (user.first_name?.[0] || user.username[0]).toUpperCase() + (user.last_name?.[0] || '').toUpperCase();
+
+  const mineLink = Array.from(document.querySelectorAll('a.nav-item')).find(a => (a.getAttribute('href') || '').includes('kanban.html?view=mine'));
+  if (mineLink) {
+    api.me.overview().then(o => {
+      const aguardando = o?.badges?.aguardando || 0;
+      const altaCritica = o?.badges?.alta_critica || 0;
+      const txt = [];
+      if (altaCritica) txt.push(`${altaCritica}`);
+      if (aguardando) txt.push(`${aguardando}`);
+      let badge = mineLink.querySelector('.nav-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'nav-badge';
+        mineLink.appendChild(badge);
+      }
+      badge.textContent = txt.length ? txt.join(' · ') : '';
+      badge.style.display = txt.length ? 'inline-flex' : 'none';
+    }).catch(() => {});
+  }
 }

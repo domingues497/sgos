@@ -20,7 +20,7 @@
   </div>
   <div class="sidebar-section-label">Menu</div>
   <nav>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="dashboard.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
@@ -28,15 +28,15 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       Abrir Chamado
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="kanban.html?view=mine">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Meus Chamados
     </a>
-    <a class="nav-item active" href="#">
+    <a class="nav-item" href="kanban.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
       Kanban
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="clientes.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Clientes
     </a>
@@ -83,13 +83,52 @@
   <!-- KANBAN WRAPPER -->
   <div class="kanban-wrapper">
     <div class="kanban-header">
-      <h2 class="kanban-title">Painel Kanban</h2>
+      <h2 class="kanban-title" id="page-title">Painel Kanban</h2>
       <div class="filter-group">
         <button class="filter-chip active" onclick="setFilter(this,'')">Todos</button>
         <button class="filter-chip" onclick="setFilter(this,'Alta')">Alta</button>
         <button class="filter-chip" onclick="setFilter(this,'Média')">Média</button>
         <button class="filter-chip" onclick="setFilter(this,'Baixa')">Baixa</button>
         <button class="filter-chip" onclick="setFilter(this,'Crítica')">Crítica</button>
+      </div>
+    </div>
+
+    <div class="mine-dashboard" id="mine-dashboard" style="display:none;">
+      <div class="mine-row">
+        <div class="mine-tabs" id="mine-tabs">
+          <button class="mine-tab is-active" data-scope="assigned" onclick="setMineScope('assigned')">Atribuídos</button>
+          <button class="mine-tab" data-scope="created" onclick="setMineScope('created')">Criados</button>
+          <button class="mine-tab" data-scope="dept" id="mine-tab-dept" onclick="setMineScope('dept')" style="display:none;">Meu Departamento</button>
+        </div>
+        <div class="mine-filters" id="mine-filters"></div>
+      </div>
+
+      <div class="mine-kpis" id="mine-kpis"></div>
+
+      <div class="mine-panels">
+        <div class="mine-panel">
+          <div class="mine-panel-header">
+            <div class="mine-panel-title">Prioridade do dia</div>
+            <div class="mine-panel-subtitle">Críticas e altas mais antigas primeiro</div>
+          </div>
+          <div class="mine-list" id="mine-priority"></div>
+        </div>
+
+        <div class="mine-panel">
+          <div class="mine-panel-header">
+            <div class="mine-panel-title">Fila de trabalho</div>
+            <div class="mine-panel-subtitle">Próximas 10 para atuar</div>
+          </div>
+          <div class="mine-list" id="mine-queue"></div>
+        </div>
+
+        <div class="mine-panel">
+          <div class="mine-panel-header">
+            <div class="mine-panel-title">Histórico recente</div>
+            <div class="mine-panel-subtitle">Últimas ações registradas</div>
+          </div>
+          <div class="mine-list" id="mine-recent"></div>
+        </div>
       </div>
     </div>
 
@@ -102,10 +141,10 @@
             <div class="col-dot"></div>
             <span class="col-name">Aberta</span>
           </div>
-          <span class="col-count" id="count-Aberta">0</span>
+          <span class="col-count" id="count-aberta">0</span>
         </div>
         <div class="col-accent-bar"></div>
-        <div class="col-body" data-col="Aberta" ondragover="onDragOver(event)" ondrop="onDrop(event,'Aberta')" ondragleave="onDragLeave(event)">
+        <div class="col-body" data-col="aberta" ondragover="onDragOver(event)" ondrop="onDrop(event,'aberta')" ondragleave="onDragLeave(event)">
           <button class="add-card-btn" onclick="window.location.href='abrir-chamado.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Abrir chamado
@@ -120,10 +159,10 @@
             <div class="col-dot"></div>
             <span class="col-name">Aguardando</span>
           </div>
-          <span class="col-count" id="count-Aguardando">0</span>
+          <span class="col-count" id="count-aguardando">0</span>
         </div>
         <div class="col-accent-bar"></div>
-        <div class="col-body" data-col="Aguardando" ondragover="onDragOver(event)" ondrop="onDrop(event,'Aguardando')" ondragleave="onDragLeave(event)"></div>
+        <div class="col-body" data-col="aguardando" ondragover="onDragOver(event)" ondrop="onDrop(event,'aguardando')" ondragleave="onDragLeave(event)"></div>
       </div>
 
       <!-- ── EM ANDAMENTO ── -->
@@ -133,10 +172,10 @@
             <div class="col-dot"></div>
             <span class="col-name">Em Andamento</span>
           </div>
-          <span class="col-count" id="count-Em Andamento">0</span>
+          <span class="col-count" id="count-em_andamento">0</span>
         </div>
         <div class="col-accent-bar"></div>
-        <div class="col-body" data-col="Em Andamento" ondragover="onDragOver(event)" ondrop="onDrop(event,'Em Andamento')" ondragleave="onDragLeave(event)"></div>
+        <div class="col-body" data-col="em_andamento" ondragover="onDragOver(event)" ondrop="onDrop(event,'em_andamento')" ondragleave="onDragLeave(event)"></div>
       </div>
 
       <!-- ── EM AVALIAÇÃO ── -->
@@ -146,10 +185,10 @@
             <div class="col-dot"></div>
             <span class="col-name">Em Avaliação</span>
           </div>
-          <span class="col-count" id="count-Em Avaliação">0</span>
+          <span class="col-count" id="count-em_avaliacao">0</span>
         </div>
         <div class="col-accent-bar"></div>
-        <div class="col-body" data-col="Em Avaliação" ondragover="onDragOver(event)" ondrop="onDrop(event,'Em Avaliação')" ondragleave="onDragLeave(event)"></div>
+        <div class="col-body" data-col="em_avaliacao" ondragover="onDragOver(event)" ondrop="onDrop(event,'em_avaliacao')" ondragleave="onDragLeave(event)"></div>
       </div>
 
       <!-- ── ENCERRADA ── -->
@@ -159,10 +198,10 @@
             <div class="col-dot"></div>
             <span class="col-name">Encerrada</span>
           </div>
-          <span class="col-count" id="count-Encerrada">0</span>
+          <span class="col-count" id="count-encerrada">0</span>
         </div>
         <div class="col-accent-bar"></div>
-        <div class="col-body" data-col="Encerrada" ondragover="onDragOver(event)" ondrop="onDrop(event,'Encerrada')" ondragleave="onDragLeave(event)"></div>
+        <div class="col-body" data-col="encerrada" ondragover="onDragOver(event)" ondrop="onDrop(event,'encerrada')" ondragleave="onDragLeave(event)"></div>
       </div>
 
     </div>
@@ -188,6 +227,7 @@
         <div class="modal-field"><label>Tipo</label><span id="modal-type"></span></div>
         <div class="modal-field"><label>Categoria</label><span id="modal-cat"></span></div>
         <div class="modal-field"><label>Cliente</label><span id="modal-client"></span></div>
+        <div class="modal-field"><label>Técnico</label><span id="modal-assignee"></span></div>
         <div class="modal-field"><label>Abertura</label><span id="modal-date"></span></div>
       </div>
       <div class="modal-desc-label">Descrição</div>
@@ -199,6 +239,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-modal-cancel" onclick="closeModal()">Fechar</button>
+      <button class="btn-modal-cancel" id="btn-assign" onclick="assignToMe()" style="display:none;">Atribuir para mim</button>
       <button class="btn-modal-advance" id="btn-advance" onclick="advanceFromModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         Avançar Etapa
@@ -207,10 +248,34 @@
   </div>
 </div>
 
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="service-overlay" onclick="closeServiceModalOutside(event)">
+  <div class="modal service-modal" id="service-modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Descrição do serviço</div>
+        <div class="modal-num" id="service-os"></div>
+      </div>
+      <button class="modal-close" onclick="closeServiceModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc-label">O que foi executado?</div>
+      <textarea id="service-text" class="service-text" rows="5" placeholder="Descreva o serviço executado..."></textarea>
+      <div class="service-error" id="service-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeServiceModal()">Cancelar</button>
+      <button class="btn-modal-advance" onclick="confirmServiceModal()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <script src="api.js"></script>
 <script>
-Auth.requireAuth();
-fillSidebarUser();
+const __authed = Auth.requireAuth();
+if (__authed) fillSidebarUser();
 
 const STATUS_ORDER = ['aberta','aguardando','em_andamento','em_avaliacao','encerrada'];
 const STATUS_META = {
@@ -227,14 +292,144 @@ let cards = [];
 let activeFilter = '';
 let dragId = null;
 let openCardId = null;
+let __mine = false;
+let __mineScope = 'assigned';
+let __mineOverview = null;
+let __mineStale = new Set();
+let __serviceResolve = null;
+let __serviceValue = '';
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function openServiceModal(osLabel) {
+  const overlay = document.getElementById('service-overlay');
+  const text = document.getElementById('service-text');
+  const err = document.getElementById('service-error');
+  const osEl = document.getElementById('service-os');
+  if (osEl) osEl.textContent = osLabel || '';
+  if (err) err.textContent = '';
+  if (text) text.value = __serviceValue || '';
+  if (overlay) overlay.classList.add('open');
+  setTimeout(() => { try { text && text.focus(); } catch {} }, 0);
+  return new Promise(resolve => { __serviceResolve = resolve; });
+}
+
+function closeServiceModal(val = null) {
+  const overlay = document.getElementById('service-overlay');
+  const text = document.getElementById('service-text');
+  if (text) __serviceValue = text.value || '';
+  if (overlay) overlay.classList.remove('open');
+  const r = __serviceResolve;
+  __serviceResolve = null;
+  if (r) r(val);
+}
+
+function closeServiceModalOutside(e) {
+  if (e.target === document.getElementById('service-overlay')) closeServiceModal(null);
+}
+
+function confirmServiceModal() {
+  const text = document.getElementById('service-text');
+  const err = document.getElementById('service-error');
+  const val = (text?.value || '').trim();
+  if (!val) {
+    if (err) err.textContent = 'Descrição do serviço é obrigatória.';
+    return;
+  }
+  closeServiceModal(val);
+}
+
+document.addEventListener('keydown', e => {
+  const overlay = document.getElementById('service-overlay');
+  if (!overlay || !overlay.classList.contains('open')) return;
+  if (e.key === 'Escape') closeServiceModal(null);
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') confirmServiceModal();
+});
+
+function _statusLabel(s) { return (STATUS_META[s] || {}).label || s; }
+
+function _priorityLevel(p) {
+  const v = String(p || '').toLowerCase();
+  if (v.includes('cr')) return 4;
+  if (v.includes('alta')) return 3;
+  if (v.includes('m')) return 2;
+  if (v.includes('baixa')) return 1;
+  return 0;
+}
+
+function _urgencyLevel(u) {
+  const v = String(u || '').toLowerCase();
+  if (v.includes('imediata')) return 4;
+  if (v.includes('alta')) return 3;
+  if (v.includes('m')) return 2;
+  if (v.includes('baixa')) return 1;
+  return 0;
+}
+
+function _parseDate(val) {
+  try {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+function _isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function _weekStart(d) {
+  const x = new Date(d);
+  const day = x.getDay();
+  const diff = (day + 6) % 7;
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - diff);
+  return x;
+}
+
+function _getView() {
+  const qs = new URLSearchParams(window.location.search);
+  return (qs.get('view') || '').toLowerCase();
+}
+
+function _setNavActive() {
+  const v = _getView();
+  const mine = Array.from(document.querySelectorAll('a.nav-item')).find(a => (a.getAttribute('href') || '') === 'kanban.html?view=mine');
+  const kanban = Array.from(document.querySelectorAll('a.nav-item')).find(a => (a.getAttribute('href') || '') === 'kanban.html');
+  document.querySelectorAll('a.nav-item').forEach(a => a.classList.remove('active'));
+  if (v === 'mine') {
+    if (mine) mine.classList.add('active');
+  } else {
+    if (kanban) kanban.classList.add('active');
+  }
+}
+
+function _applyMineTitle() {
+  const v = _getView();
+  const title = document.getElementById('page-title');
+  const crumb = document.querySelector('.breadcrumb .current');
+  if (!title || !crumb) return;
+  if (v === 'mine') {
+    title.textContent = 'Meus Chamados';
+    crumb.textContent = 'Meus Chamados';
+  } else {
+    title.textContent = 'Painel Kanban';
+    crumb.textContent = 'Kanban';
+  }
+}
 
 // ─── LOAD ───────────────────────────────────────────────
-async function loadCards() {
+async function loadCards(params = null) {
   try {
-    const res = await api.os.list({ page_size: 100 });
+    const res = await api.os.list(params || { page_size: 150 });
     cards = res.results || [];
     render();
+    if (__mine) renderMineFromCards();
   } catch(err) {
+    if (err && err.status === 401) return;
     showToast('error', 'Erro ao carregar chamados.');
   }
 }
@@ -244,14 +439,16 @@ function render() {
   const q = document.getElementById('search-input').value.toLowerCase();
   STATUS_ORDER.forEach(status => {
     const body = document.querySelector(`.col-body[data-col="${status}"]`);
+    if (!body) return;
     const addBtn = body.querySelector('.add-card-btn');
     body.innerHTML = '';
     if (addBtn) body.appendChild(addBtn);
 
     const filtered = cards.filter(c =>
       c.status === status &&
+      (!__mine || _minePredicate(c)) &&
       (activeFilter === '' || c.prioridade === activeFilter) &&
-      (!q || c.numero.toLowerCase().includes(q) || c.titulo.toLowerCase().includes(q) || c.cliente_nome.toLowerCase().includes(q))
+      (!q || String(c.numero || '').toLowerCase().includes(q) || String(c.titulo || '').toLowerCase().includes(q) || String(c.cliente_nome || '').toLowerCase().includes(q))
     );
 
     filtered.forEach((c, i) => {
@@ -267,7 +464,7 @@ function render() {
 
 function buildCard(c) {
   const div = document.createElement('div');
-  div.className = 'card';
+  div.className = __mineStale.has(c.id) ? 'card is-stale' : 'card';
   div.draggable = true;
   div.dataset.id = c.id;
 
@@ -310,10 +507,17 @@ function buildCard(c) {
 // ─── ADVANCE ────────────────────────────────────────────
 async function advanceCard(id) {
   try {
-    const updated = await api.os.avancar(id, '');
+    const c = cards.find(x => x.id === id);
+    let obs = '';
+    if (c && c.status === 'em_andamento') {
+      obs = await openServiceModal(`${c.numero} · ${c.titulo}`);
+      if (!obs) return;
+    }
+    const updated = await api.os.avancar(id, obs);
     const idx = cards.findIndex(c => c.id === id);
     if (idx >= 0) cards[idx] = { ...cards[idx], status: updated.status };
     render();
+    if (__mine) await refreshMineOverview(false);
     if (openCardId === id) await refreshModal(id);
     showToast('success', 'Status atualizado!');
   } catch(err) {
@@ -344,12 +548,18 @@ async function onDrop(e, targetStatus) {
   try {
     let current = c;
     for (let i = fromIdx; i < toIdx; i++) {
-      const updated = await api.os.avancar(current.id, '');
+      let obs = '';
+      if (current.status === 'em_andamento') {
+        obs = await openServiceModal(`${current.numero} · ${current.titulo}`);
+        if (!obs) return;
+      }
+      const updated = await api.os.avancar(current.id, obs);
       current = { ...current, status: updated.status };
     }
     const idx = cards.findIndex(x => x.id === dragId);
     if (idx >= 0) cards[idx] = { ...cards[idx], status: current.status };
     render();
+    if (__mine) await refreshMineOverview(false);
     showToast('success', 'Status atualizado!');
   } catch(err) {
     showToast('error', apiErrorMsg(err));
@@ -378,6 +588,7 @@ async function refreshModal(id) {
     document.getElementById('modal-type').textContent = c.tipo_display || c.tipo;
     document.getElementById('modal-cat').textContent  = c.categoria || '—';
     document.getElementById('modal-client').textContent = c.cliente_nome;
+    document.getElementById('modal-assignee').textContent = c.atribuido_para_nome || '—';
     document.getElementById('modal-date').textContent  = new Date(c.aberta_em).toLocaleDateString('pt-BR');
     document.getElementById('modal-desc').textContent  = c.descricao;
 
@@ -395,8 +606,30 @@ async function refreshModal(id) {
     btn.innerHTML = nextMeta
       ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Avançar para ${nextMeta.label}`
       : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Encerrado`;
+
+    const btnAssign = document.getElementById('btn-assign');
+    if (btnAssign) {
+      const canAssign = !c.atribuido_para_id && c.status !== 'encerrada';
+      btnAssign.style.display = canAssign ? '' : 'none';
+    }
   } catch(err) {
+    if (err && err.status === 401) return;
     showToast('error', 'Erro ao carregar detalhes.');
+  }
+}
+
+async function assignToMe() {
+  if (!openCardId) return;
+  try {
+    const updated = await api.os.assign(openCardId, {});
+    const idx = cards.findIndex(c => c.id === openCardId);
+    if (idx >= 0) cards[idx] = { ...cards[idx], ...updated };
+    render();
+    if (__mine) await refreshMineOverview(false);
+    await refreshModal(openCardId);
+    showToast('success', 'Chamado atribuído!');
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
   }
 }
 
@@ -412,7 +645,247 @@ function setFilter(btn, val) {
 }
 function filterCards() { render(); }
 
-loadCards();
+function setMineScope(scope) {
+  __mineScope = scope;
+  document.querySelectorAll('.mine-tab').forEach(b => b.classList.remove('is-active'));
+  const btn = document.querySelector(`.mine-tab[data-scope="${scope}"]`);
+  if (btn) btn.classList.add('is-active');
+  if (!__mine) return;
+  const params = getListParamsForMineScope(scope);
+  loadCards(params);
+  renderMineFromCards();
+}
+
+function getListParamsForMineScope(scope) {
+  const base = { page_size: 300 };
+  if (scope === 'assigned') base.assigned_to = 'me';
+  if (scope === 'created') base.created_by = 'me';
+  if (scope === 'dept') {
+    const dep = __mineOverview?.user?.departamento || '';
+    if (dep) base.departamento = dep;
+  }
+  return base;
+}
+
+function renderMineFilters(filters) {
+  const el = document.getElementById('mine-filters');
+  if (!el) return;
+  const defs = [
+    { key: 'all', label: 'Todos' },
+    { key: 'my_high', label: 'Minhas críticas/altas' },
+    { key: 'my_wait', label: 'Minhas aguardando' },
+    { key: 'stale_48', label: 'Sem atualização 48h' },
+  ];
+  el.innerHTML = defs.map(d => `<button class="mine-filter" data-key="${d.key}" onclick="applyMinePreset('${d.key}')">${d.label}</button>`).join('');
+  applyMinePreset('all');
+}
+
+let __minePreset = 'all';
+function applyMinePreset(key) {
+  __minePreset = key;
+  document.querySelectorAll('.mine-filter').forEach(b => b.classList.toggle('is-active', b.getAttribute('data-key') === key));
+  render();
+  renderMineFromCards();
+}
+
+function _minePredicate(c) {
+  if (__minePreset === 'my_wait') return c.status === 'aguardando';
+  if (__minePreset === 'my_high') return _priorityLevel(c.prioridade) >= 3 && c.status !== 'encerrada';
+  if (__minePreset === 'stale_48') return __mineStale.has(c.id);
+  return true;
+}
+
+function renderMineKPIs(k) {
+  const el = document.getElementById('mine-kpis');
+  if (!el) return;
+  const items = [
+    { label: 'Abertas comigo', value: k.aberta || 0 },
+    { label: 'Em andamento', value: k.em_andamento || 0 },
+    { label: 'Em avaliação', value: k.em_avaliacao || 0 },
+    { label: 'Aguardando', value: k.aguardando || 0 },
+    { label: 'Encerradas hoje', value: k.encerradas_hoje || 0 },
+    { label: 'Encerradas semana', value: k.encerradas_semana || 0 },
+  ];
+  el.innerHTML = items.map(i => `<div class="mine-kpi"><div class="mine-kpi-val">${i.value}</div><div class="mine-kpi-label">${i.label}</div></div>`).join('');
+}
+
+function computeKPIsFromCards(list) {
+  const now = new Date();
+  const ws = _weekStart(now);
+  let encerradasHoje = 0;
+  let encerradasSemana = 0;
+  for (const c of list) {
+    const ed = _parseDate(c.encerrada_em);
+    if (ed) {
+      if (_isSameDay(ed, now)) encerradasHoje++;
+      if (ed >= ws) encerradasSemana++;
+    }
+  }
+  return {
+    aberta: list.filter(c => c.status === 'aberta').length,
+    aguardando: list.filter(c => c.status === 'aguardando').length,
+    em_andamento: list.filter(c => c.status === 'em_andamento').length,
+    em_avaliacao: list.filter(c => c.status === 'em_avaliacao').length,
+    encerradas_hoje: encerradasHoje,
+    encerradas_semana: encerradasSemana,
+  };
+}
+
+function computeStaleIds(list, hours = 48) {
+  const cut = Date.now() - (hours * 3600 * 1000);
+  return new Set(list.filter(c => c.status === 'aguardando').filter(c => {
+    const d = _parseDate(c.status_alterado_em || c.aberta_em);
+    return d && d.getTime() <= cut;
+  }).map(c => c.id));
+}
+
+function computePriorityOfDay(list) {
+  return list
+    .filter(c => c.status !== 'encerrada')
+    .filter(c => _priorityLevel(c.prioridade) >= 3)
+    .sort((a, b) => {
+      const da = _parseDate(a.status_alterado_em || a.aberta_em)?.getTime() || 0;
+      const db = _parseDate(b.status_alterado_em || b.aberta_em)?.getTime() || 0;
+      return da - db;
+    })
+    .slice(0, 20);
+}
+
+function computeQueue(list) {
+  return list
+    .filter(c => c.status !== 'encerrada')
+    .sort((a, b) => {
+      const pa = _priorityLevel(a.prioridade);
+      const pb = _priorityLevel(b.prioridade);
+      if (pa !== pb) return pb - pa;
+      const ua = _urgencyLevel(a.urgencia);
+      const ub = _urgencyLevel(b.urgencia);
+      if (ua !== ub) return ub - ua;
+      const da = _parseDate(a.status_alterado_em || a.aberta_em)?.getTime() || 0;
+      const db = _parseDate(b.status_alterado_em || b.aberta_em)?.getTime() || 0;
+      return da - db;
+    })
+    .slice(0, 10);
+}
+
+function buildMineItem(c) {
+  const staleClass = __mineStale.has(c.id) ? ' is-stale' : '';
+  const pri = escapeHtml(c.prioridade || '');
+  const urg = escapeHtml(c.urgencia || '');
+  const sub = [escapeHtml(c.cliente_nome || ''), pri ? `Pri: ${pri}` : '', urg ? `Urg: ${urg}` : ''].filter(Boolean).join(' · ');
+  const canAdvance = c.status !== 'encerrada';
+  return `
+    <div class="mine-item${staleClass}">
+      <div class="mine-item-main" onclick="openModal(${c.id})">
+        <div class="mine-item-top">
+          <span class="mine-num">${escapeHtml(c.numero)}</span>
+          <span class="mine-pill">${escapeHtml(_statusLabel(c.status))}</span>
+        </div>
+        <div class="mine-item-title">${escapeHtml(c.titulo)}</div>
+        <div class="mine-item-sub">${sub}</div>
+      </div>
+      <div class="mine-item-actions">
+        ${canAdvance ? `<button class="mine-btn" onclick="event.stopPropagation();advanceCard(${c.id})">Avançar</button>` : ''}
+        <button class="mine-btn" onclick="event.stopPropagation();quickIteracao(${c.id})">Iteração</button>
+      </div>
+    </div>`;
+}
+
+function renderMineLists(priority, queue) {
+  const pEl = document.getElementById('mine-priority');
+  const qEl = document.getElementById('mine-queue');
+  if (pEl) pEl.innerHTML = priority.length ? priority.map(buildMineItem).join('') : `<div class="mine-empty">Sem chamados críticos/altos.</div>`;
+  if (qEl) qEl.innerHTML = queue.length ? queue.map(buildMineItem).join('') : `<div class="mine-empty">Sem fila no momento.</div>`;
+}
+
+function renderMineRecent(rows) {
+  const el = document.getElementById('mine-recent');
+  if (!el) return;
+  if (!rows || !rows.length) {
+    el.innerHTML = `<div class="mine-empty">Sem histórico recente.</div>`;
+    return;
+  }
+  el.innerHTML = rows.map(r => {
+    const when = _parseDate(r.at);
+    const at = when ? when.toLocaleString('pt-BR') : '';
+    if (r.kind === 'status') {
+      return `<div class="mine-recent"><span class="mine-recent-tag">Status</span><span class="mine-recent-text">${escapeHtml(r.os_numero)} · ${escapeHtml(r.os_titulo)} · ${escapeHtml(r.from || '')} → ${escapeHtml(r.to || '')}</span><span class="mine-recent-at">${escapeHtml(at)}</span></div>`;
+    }
+    return `<div class="mine-recent"><span class="mine-recent-tag">Iteração</span><span class="mine-recent-text">${escapeHtml(r.os_numero)} · ${escapeHtml(r.os_titulo)} · ${escapeHtml(r.texto || '')}</span><span class="mine-recent-at">${escapeHtml(at)}</span></div>`;
+  }).join('');
+}
+
+async function quickIteracao(osId) {
+  const text = window.prompt('Registrar iteração:', '');
+  if (!text || !text.trim()) return;
+  try {
+    await api.os.iteracoes.create(osId, text.trim());
+    showToast('success', 'Iteração registrada!');
+    if (__mine) await refreshMineOverview(true);
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+async function refreshMineOverview(forceCards) {
+  try {
+    __mineOverview = await api.me.overview();
+    __mineStale = new Set(__mineOverview?.stale_ids || []);
+    renderMineKPIs(__mineScope === 'assigned' ? (__mineOverview.kpis || {}) : computeKPIsFromCards(cards.filter(_minePredicate)));
+    renderMineRecent(__mineOverview.recentes || []);
+    if (forceCards) {
+      await loadCards(getListParamsForMineScope(__mineScope));
+    } else {
+      render();
+      renderMineFromCards();
+    }
+  } catch {}
+}
+
+function renderMineFromCards() {
+  if (!__mine) return;
+  const list = cards.filter(_minePredicate);
+
+  if (__mineScope !== 'assigned') {
+    __mineStale = computeStaleIds(cards, 48);
+  }
+
+  if (__mineScope === 'assigned' && __mineOverview) {
+    renderMineKPIs(__mineOverview.kpis || {});
+    renderMineLists(__mineOverview.prioridade_do_dia || [], __mineOverview.fila || []);
+    renderMineRecent(__mineOverview.recentes || []);
+  } else {
+    renderMineKPIs(computeKPIsFromCards(list));
+    renderMineLists(computePriorityOfDay(list), computeQueue(list));
+  }
+}
+
+async function initMine() {
+  __mine = _getView() === 'mine';
+  _setNavActive();
+  _applyMineTitle();
+  const dash = document.getElementById('mine-dashboard');
+  if (dash) dash.style.display = __mine ? '' : 'none';
+  if (!__mine) return;
+
+  try {
+    __mineOverview = await api.me.overview();
+    __mineStale = new Set(__mineOverview?.stale_ids || []);
+    const deptBtn = document.getElementById('mine-tab-dept');
+    if (deptBtn) deptBtn.style.display = __mineOverview?.user?.is_admin ? '' : 'none';
+    renderMineFilters(__mineOverview?.saved_filters || []);
+    renderMineRecent(__mineOverview?.recentes || []);
+    setMineScope('assigned');
+  } catch (e) {
+    setMineScope('assigned');
+  }
+}
+
+if (__authed) {
+  initMine().then(() => {
+    if (!__mine) loadCards();
+  });
+}
 
 </script>
 </body>

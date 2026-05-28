@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -65,6 +65,122 @@ class UserSerializer(serializers.ModelSerializer):
             return ''
         except PerfilUsuario.DoesNotExist:
             return ''
+
+
+class TecnicoSerializer(serializers.ModelSerializer):
+    departamento = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'departamento')
+
+    def get_departamento(self, obj):
+        try:
+            perfil = obj.perfil
+            if getattr(perfil, 'departamento_id', None):
+                return perfil.departamento.nome
+            return ''
+        except Exception:
+            return ''
+
+
+class TecnicoCreateSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    first_name = serializers.CharField(required=False, allow_blank=True, default='')
+    last_name = serializers.CharField(required=False, allow_blank=True, default='')
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=6)
+    departamento = serializers.CharField(required=False, allow_blank=True, default='')
+
+    def validate_username(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Usuário não pode ser vazio.')
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError('Usuário já existe.')
+        return value
+
+    def validate_email(self, value):
+        value = value.strip()
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Email já está em uso.')
+        return value
+
+    def validate_departamento(self, value):
+        value = (value or '').strip()
+        if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Departamento inválido.')
+        return value
+
+    def create(self, validated_data):
+        departamento = validated_data.pop('departamento', '') or ''
+        password = validated_data.pop('password')
+
+        user = User.objects.create_user(**validated_data)
+        user.set_password(password)
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
+        user.save()
+
+        dep_fk = None
+        if departamento:
+            dep_fk = OpcaoDepartamento.objects.get(nome=departamento)
+        PerfilUsuario.objects.create(usuario=user, departamento=dep_fk)
+
+        grp, _ = Group.objects.get_or_create(name='Tecnicos')
+        user.groups.add(grp)
+        return user
+
+
+class TecnicoUpdateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    departamento = serializers.CharField(required=False, allow_blank=True)
+    is_active = serializers.BooleanField(required=False)
+
+    def validate_email(self, value):
+        value = (value or '').strip()
+        if not value:
+            return value
+        user = self.context.get('user_obj')
+        qs = User.objects.filter(email=value)
+        if user:
+            qs = qs.exclude(pk=user.pk)
+        if qs.exists():
+            raise serializers.ValidationError('Email já está em uso.')
+        return value
+
+    def validate_departamento(self, value):
+        value = (value or '').strip()
+        if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
+            raise serializers.ValidationError('Departamento inválido.')
+        return value
+
+    def update(self, instance, validated_data):
+        if 'first_name' in validated_data:
+            instance.first_name = validated_data['first_name']
+        if 'last_name' in validated_data:
+            instance.last_name = validated_data['last_name']
+        if 'email' in validated_data:
+            instance.email = validated_data['email']
+        if 'is_active' in validated_data:
+            instance.is_active = validated_data['is_active']
+        instance.save()
+
+        if 'departamento' in validated_data:
+            dep_name = validated_data['departamento']
+            try:
+                perfil = instance.perfil
+            except Exception:
+                perfil = PerfilUsuario(usuario=instance)
+            if dep_name:
+                perfil.departamento = OpcaoDepartamento.objects.get(nome=dep_name)
+            else:
+                perfil.departamento = None
+            perfil.save()
+        return instance
 
 
 # ── CLIENTE ───────────────────────────────────────────────────────────────────
@@ -134,6 +250,9 @@ class OrdemServicoListSerializer(serializers.ModelSerializer):
     """Serializer leve para listagens (Kanban / Dashboard)."""
     cliente_nome  = serializers.CharField(source='cliente.nome', read_only=True)
     criado_por_nome = serializers.SerializerMethodField()
+    criado_por_id = serializers.IntegerField(source='criado_por.id', read_only=True)
+    atribuido_para_nome = serializers.SerializerMethodField()
+    atribuido_para_id = serializers.SerializerMethodField()
     status_display    = serializers.CharField(source='get_status_display',    read_only=True)
     prioridade = serializers.SerializerMethodField()
     tipo = serializers.SerializerMethodField()
@@ -143,6 +262,7 @@ class OrdemServicoListSerializer(serializers.ModelSerializer):
     prioridade_display = serializers.SerializerMethodField()
     tipo_display = serializers.SerializerMethodField()
     encerrada_em = serializers.DateTimeField(read_only=True)
+    status_alterado_em = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model  = OrdemServico
@@ -150,13 +270,23 @@ class OrdemServicoListSerializer(serializers.ModelSerializer):
             'id', 'numero', 'titulo', 'status', 'status_display',
             'prioridade', 'prioridade_display', 'tipo', 'tipo_display',
             'categoria', 'urgencia', 'departamento',
-            'cliente_nome', 'criado_por_nome', 'aberta_em', 'encerrada_em',
+            'cliente_nome', 'criado_por_nome', 'criado_por_id',
+            'atribuido_para_nome', 'atribuido_para_id',
+            'aberta_em', 'status_alterado_em', 'encerrada_em',
         )
 
     def get_criado_por_nome(self, obj):
         if obj.criado_por:
             return obj.criado_por.get_full_name() or obj.criado_por.username
         return ''
+
+    def get_atribuido_para_nome(self, obj):
+        if getattr(obj, 'atribuido_para_id', None):
+            return obj.atribuido_para.get_full_name() or obj.atribuido_para.username
+        return ''
+
+    def get_atribuido_para_id(self, obj):
+        return getattr(obj, 'atribuido_para_id', None) or None
 
     def get_prioridade(self, obj):
         if getattr(obj, 'prioridade_id', None):
@@ -195,6 +325,8 @@ class OrdemServicoDetailSerializer(serializers.ModelSerializer):
     cliente_nome    = serializers.CharField(source='cliente.nome', read_only=True)
     cliente_telefone = serializers.CharField(source='cliente.telefone', read_only=True)
     criado_por_nome = serializers.CharField(source='criado_por.username', default='', read_only=True)
+    atribuido_para_nome = serializers.SerializerMethodField()
+    atribuido_para_id = serializers.SerializerMethodField()
     status_display  = serializers.CharField(source='get_status_display', read_only=True)
     prioridade = serializers.SerializerMethodField()
     tipo = serializers.SerializerMethodField()
@@ -217,11 +349,20 @@ class OrdemServicoDetailSerializer(serializers.ModelSerializer):
             'status', 'status_display', 'prioridade', 'prioridade_display',
             'tipo', 'tipo_display', 'categoria', 'urgencia', 'departamento',
             'cliente', 'cliente_nome', 'cliente_telefone',
-            'criado_por_nome', 'aberta_em', 'encerrada_em', 'status_alterado_em',
+            'criado_por_nome', 'atribuido_para_nome', 'atribuido_para_id',
+            'aberta_em', 'encerrada_em', 'status_alterado_em',
             'historico_status', 'iteracoes', 'anexos',
             'pode_avancar', 'proximo_status',
         )
         read_only_fields = ('numero', 'aberta_em', 'status_alterado_em')
+
+    def get_atribuido_para_nome(self, obj):
+        if getattr(obj, 'atribuido_para_id', None):
+            return obj.atribuido_para.get_full_name() or obj.atribuido_para.username
+        return ''
+
+    def get_atribuido_para_id(self, obj):
+        return getattr(obj, 'atribuido_para_id', None) or None
 
     def get_prioridade(self, obj):
         if getattr(obj, 'prioridade_id', None):
@@ -261,7 +402,7 @@ class OrdemServicoCreateSerializer(serializers.ModelSerializer):
     categoria = serializers.CharField(required=False, allow_blank=True, default='')
     prioridade = serializers.CharField(required=False, allow_blank=True, default='')
     urgencia = serializers.CharField(required=False, allow_blank=True, default='')
-    departamento = serializers.CharField(required=False, allow_blank=True, default='')
+    departamento = serializers.CharField(required=True, allow_blank=False)
 
     class Meta:
         model  = OrdemServico
@@ -296,6 +437,8 @@ class OrdemServicoCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_departamento(self, value):
+        if not value or not str(value).strip():
+            raise serializers.ValidationError('Departamento é obrigatório.')
         if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
             raise serializers.ValidationError('Departamento inválido.')
         return value
@@ -358,6 +501,10 @@ class AvancarStatusSerializer(serializers.Serializer):
         # RN006: OS encerrada não pode ser editada
         if os_obj.status == 'encerrada':
             raise serializers.ValidationError('OS encerrada não pode ser alterada.')
+        if os_obj.status == 'em_andamento':
+            obs = (attrs.get('observacao') or '').strip()
+            if not obs:
+                raise serializers.ValidationError({'observacao': 'Descreva o serviço executado para avançar.'})
         return attrs
 
 
