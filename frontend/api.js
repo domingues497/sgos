@@ -24,7 +24,7 @@ function _normalizeApiBase(input) {
 
 const __host = window.location.hostname || '127.0.0.1';
 const __defaultLocal = 'http://127.0.0.1:8010/api';
-var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || (_isLocalHost(__host) ? __defaultLocal : '');
+var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || (_isLocalHost(__host) ? __defaultLocal : `${window.location.origin}/api`);
 window.SGOS_API_BASE = API_BASE;
 
 let _apiBaseReadyPromise = null;
@@ -74,22 +74,6 @@ async function ensureApiBase() {
       }
     }
     window.SGOS_API_BASE = API_BASE;
-
-    if (!API_BASE && !_isLocalHost(__host)) {
-      const input = window.prompt(
-        'Cole a URL da API do SGOS (ex: https://seu-backend.up.railway.app/api)',
-        '',
-      );
-      if (input) {
-        try {
-          API_BASE = _normalizeApiBase(input);
-          localStorage.setItem(API_BASE_STORAGE_KEY, API_BASE);
-          window.SGOS_API_BASE = API_BASE;
-        } catch {
-          localStorage.removeItem(API_BASE_STORAGE_KEY);
-        }
-      }
-    }
 
     const okCurrent = await _probeApiBase(API_BASE);
     if (okCurrent) return;
