@@ -19,29 +19,33 @@
     <span>Chamados</span>
   </div>
   <div class="sidebar-section-label">Menu</div>
-  <nav>
-    <a class="nav-item" href="dashboard.html">
+  <nav class="sidebar-nav">
+    <a class="nav-item" data-nav="dashboard" href="dashboard.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
-    <a class="nav-item" href="abrir-chamado.html">
+    <a class="nav-item" data-nav="abrir" href="abrir-chamado.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       Abrir Chamado
     </a>
-    <a class="nav-item" href="kanban.html?view=mine">
+    <a class="nav-item" data-nav="mine" href="kanban.html?view=mine">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Meus Chamados
     </a>
-    <a class="nav-item" href="kanban.html">
+    <a class="nav-item" data-nav="kanban" href="kanban.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
       Kanban
     </a>
-    <a class="nav-item active" href="clientes.html">
+    <a class="nav-item active" data-nav="clientes" href="clientes.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Clientes
     </a>
+    <a class="nav-item" id="nav-cadastros" data-nav="cadastros" href="cadastros.html" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+      Cadastros
+    </a>
   </nav>
-  <div class="sidebar-footer sidebar-footer--stack">
+  <div class="sidebar-footer">
     <div class="sidebar-userrow">
       <div class="avatar">GM</div>
       <div class="user-info">
@@ -49,10 +53,6 @@
         <div class="user-role">Funcionário</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="api.logout()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sair
-    </button>
   </div>
 </aside>
 
@@ -60,25 +60,62 @@
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="breadcrumb">
-        <span>Dashboard</span><span>/</span>
-        <span class="current">Clientes</span>
-      </div>
+      <svg class="breadcrumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="breadcrumb-muted">Dashboard</span>
+      <span class="breadcrumb-muted">/</span>
+      <span class="topbar-title">Clientes</span>
     </div>
     <div class="topbar-right">
       <button class="btn-primary" onclick="openAddModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Cliente
       </button>
+      <button class="btn-sidebar-toggle" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="13" y1="9" x2="17" y2="9"/><line x1="13" y1="15" x2="17" y2="15"/></svg>
+        <span class="btn-sidebar-toggle-text">Mostrar workspace</span>
+      </button>
+      <button class="btn-logout-top" onclick="api.logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </button>
     </div>
   </div>
 
   <div class="content">
+    <div class="hero-card">
+      <div class="hero-main">
+        <span class="hero-eyebrow">Workspace SGOS</span>
+        <div class="page-header">
+          <h2>Gestão de Clientes</h2>
+          <p>Centralize cadastros, acompanhe o relacionamento e mantenha a base de clientes pronta para a operação diária.</p>
+        </div>
+      </div>
+      <div class="hero-highlights">
+        <div class="hero-highlight">
+          <strong>Visão centralizada</strong>
+          <span>Consulte, edite e acompanhe os clientes vinculados aos chamados em um único fluxo.</span>
+        </div>
+        <div class="hero-highlight">
+          <strong>Gestão com contexto</strong>
+          <span>Veja rapidamente o volume de chamados por cliente e a situação atual da carteira.</span>
+        </div>
+        <div class="hero-highlight">
+          <strong>Ação operacional</strong>
+          <span>Encontre registros com agilidade para abrir, validar e acompanhar novas solicitações.</span>
+        </div>
+      </div>
+    </div>
 
     <div class="toolbar">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-input" placeholder="Pesquisar por nome do cliente..." oninput="renderTable()"/>
+        <input type="text" id="search-input" placeholder="Pesquisar por nome, e-mail ou telefone..."/>
+      </div>
+      <div class="toolbar-select">
+        <label for="dept-filter">Departamento</label>
+        <select id="dept-filter">
+          <option value="">Todos os departamentos</option>
+        </select>
       </div>
       <span class="count-label" id="count-label"></span>
     </div>
@@ -90,6 +127,7 @@
             <th onclick="sortBy('nome')"><div class="th-inner">Cliente <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></th>
             <th onclick="sortBy('telefone')"><div class="th-inner">Telefone</div></th>
             <th onclick="sortBy('email')"><div class="th-inner">E-mail</div></th>
+            <th onclick="sortBy('departamento')"><div class="th-inner">Departamento</div></th>
             <th><div class="th-inner">Endereço</div></th>
             <th onclick="sortBy('os')"><div class="th-inner">Chamados <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></th>
             <th><div class="th-inner">Ações</div></th>
@@ -132,6 +170,21 @@
           <label>E-mail <span class="req">*</span></label>
           <input type="text" id="f-email" placeholder="email@exemplo.com"/>
           <span class="err-msg" id="err-email">E-mail inválido</span>
+        </div>
+        <div class="field">
+          <label>Departamento <span class="req">*</span></label>
+          <select id="f-departamento"></select>
+          <span class="err-msg" id="err-departamento">Departamento obrigatório</span>
+        </div>
+        <div class="field">
+          <label>Usuário de acesso <span class="req">*</span></label>
+          <input type="text" id="f-usuario" placeholder="usuario.cliente"/>
+          <span class="err-msg" id="err-usuario">Usuário obrigatório</span>
+        </div>
+        <div class="field">
+          <label>Senha de acesso <span class="req" id="password-required">*</span></label>
+          <input type="password" id="f-senha" placeholder="min. 6 caracteres"/>
+          <span class="err-msg" id="err-senha">Senha obrigatória</span>
         </div>
         <div class="field form-full">
           <label>Endereço</label>
@@ -213,6 +266,8 @@ let deletingId = null;
 let sortField = 'nome';
 let sortAsc = true;
 let searchQ = '';
+let deptOptions = [];
+let selectedDept = '';
 
 function initials(name) { return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 function avatarColor(id) { return AVATAR_COLORS[((id||0)-1) % AVATAR_COLORS.length]; }
@@ -228,11 +283,33 @@ function maskPhone(input) {
 // ─── LOAD ───────────────────────────────────────────────
 async function loadClients() {
   try {
-    const res = await api.clientes.list(searchQ);
+    const res = await api.clientes.list({
+      search: searchQ,
+      departamento: selectedDept,
+    });
     clients = res.results || [];
     renderTable();
   } catch(err) {
     showToast('error', 'Erro ao carregar clientes.');
+  }
+}
+
+async function loadDeptOptions() {
+  try {
+    const meta = await api.os.meta();
+    deptOptions = meta?.departamentos || [];
+    const formSel = document.getElementById('f-departamento');
+    const filterSel = document.getElementById('dept-filter');
+    const options = deptOptions.map(d => `<option value="${d}">${d}</option>`).join('');
+    if (formSel) {
+      formSel.innerHTML = '<option value="">Selecione o departamento</option>' + options;
+    }
+    if (filterSel) {
+      filterSel.innerHTML = '<option value="">Todos os departamentos</option>' + options;
+      filterSel.value = selectedDept;
+    }
+  } catch (err) {
+    showToast('error', 'Erro ao carregar departamentos.');
   }
 }
 
@@ -270,6 +347,7 @@ function renderTable() {
       </div></td>
       <td>${c.telefone}</td>
       <td>${c.email}</td>
+      <td>${c.departamento || '—'}</td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.endereco||'—'}</td>
       <td><span class="os-count ${osClass}">${osText}</span></td>
       <td><div class="action-group">
@@ -301,10 +379,16 @@ document.getElementById('search-input').addEventListener('input', e => {
   searchTimer = setTimeout(loadClients, 350);
 });
 
+document.getElementById('dept-filter').addEventListener('change', e => {
+  selectedDept = e.target.value.trim();
+  loadClients();
+});
+
 // ─── MODAL ADD/EDIT ──────────────────────────────────────
 function openAddModal() {
   editingId = null;
   document.getElementById('form-title').textContent = 'Novo Cliente';
+  document.getElementById('password-required').style.visibility = 'visible';
   clearForm();
   document.getElementById('modal-form').classList.add('open');
 }
@@ -317,19 +401,25 @@ function openEdit(id) {
   document.getElementById('f-nome').value     = c.nome;
   document.getElementById('f-telefone').value = c.telefone;
   document.getElementById('f-email').value    = c.email;
+  document.getElementById('f-departamento').value = c.departamento || '';
+  document.getElementById('f-usuario').value = c.usuario_username || '';
+  document.getElementById('f-senha').value = '';
   document.getElementById('f-endereco').value = c.endereco || '';
+  document.getElementById('password-required').style.visibility = 'hidden';
   clearErrors();
   document.getElementById('modal-form').classList.add('open');
   document.getElementById('modal-view').classList.remove('open');
 }
 
 function clearForm() {
-  ['f-nome','f-telefone','f-email','f-endereco'].forEach(id => document.getElementById(id).value='');
+  ['f-nome','f-telefone','f-email','f-usuario','f-senha','f-endereco'].forEach(id => document.getElementById(id).value='');
+  const dept = document.getElementById('f-departamento');
+  if (dept) dept.value = '';
   clearErrors();
 }
 
 function clearErrors() {
-  ['nome','telefone','email'].forEach(f => {
+  ['nome','telefone','email','departamento','usuario','senha'].forEach(f => {
     document.getElementById('f-'+f).classList.remove('error');
     document.getElementById('err-'+f).classList.remove('visible');
   });
@@ -345,15 +435,23 @@ async function saveClient() {
   const nome     = document.getElementById('f-nome').value.trim();
   const telefone = document.getElementById('f-telefone').value.trim();
   const email    = document.getElementById('f-email').value.trim();
+  const departamento = document.getElementById('f-departamento').value.trim();
+  const usuario = document.getElementById('f-usuario').value.trim();
+  const senha = document.getElementById('f-senha').value;
   const endereco = document.getElementById('f-endereco').value.trim();
   let ok = true;
   clearErrors();
   if (!nome)    { setError('nome','Nome obrigatório'); ok=false; }
   if (!telefone){ setError('telefone','Telefone obrigatório'); ok=false; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setError('email','E-mail inválido'); ok=false; }
+  if (!departamento) { setError('departamento','Departamento obrigatório'); ok=false; }
+  if (!usuario) { setError('usuario','Usuário obrigatório'); ok=false; }
+  if (!editingId && !senha) { setError('senha','Senha obrigatória'); ok=false; }
+  if (senha && senha.length < 6) { setError('senha','Senha deve ter no mínimo 6 caracteres'); ok=false; }
   if (!ok) return;
 
-  const payload = { nome, telefone, email, endereco };
+  const payload = { nome, telefone, email, endereco, departamento, usuario_username: usuario };
+  if (senha) payload.usuario_password = senha;
   try {
     if (editingId) {
       await api.clientes.update(editingId, payload);
@@ -428,6 +526,8 @@ async function openView(id) {
         <div class="view-grid">
           <div class="view-field"><label>Telefone</label><span>${c.telefone}</span></div>
           <div class="view-field"><label>E-mail</label><span>${c.email}</span></div>
+          <div class="view-field"><label>Departamento</label><span>${c.departamento || '—'}</span></div>
+          <div class="view-field"><label>Usuário de acesso</label><span>${c.usuario_username || '—'}</span></div>
           <div class="view-field" style="grid-column:1/-1"><label>Endereço</label><span>${c.endereco||'—'}</span></div>
         </div>
       </div>
@@ -447,7 +547,15 @@ async function openView(id) {
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
-if (__authed) loadClients();
+async function initPage() {
+  if (!__authed) return;
+  const allowed = await requireAdminAccess();
+  if (!allowed) return;
+  await loadDeptOptions();
+  await loadClients();
+}
+
+initPage();
 
 </script>
 </body>

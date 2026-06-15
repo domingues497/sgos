@@ -1,5 +1,5 @@
 # 🔍 ANÁLISE 3NF — CÓDIGO REAL DO PROJETO SGOS
-## Django + PostgreSQL — Baseado em models.py e init.sql
+## Django + PostgreSQL — Baseado em models.py e no schema legado do projeto
 
 ---
 
@@ -245,10 +245,10 @@ def registrar_status_automaticamente(sender, instance, **kwargs):
 
 ### Problema #3: `usuarios_perfis` com Departamento String (MÉDIO)
 
-**Arquivo: `models.py` - Não explicitamente mostrado, mas no schema:**
+**Arquivo: `models.py` - Não explicitamente mostrado, mas presente no schema legado:**
 
 ```sql
--- ❌ SQL ATUAL (init.sql linha 183)
+-- ❌ SQL LEGADO (estrutura anterior do projeto)
 CREATE TABLE IF NOT EXISTS usuarios_perfis (
     id             BIGSERIAL PRIMARY KEY,
     departamento   VARCHAR(100) NOT NULL DEFAULT '',  -- ← SEM FK!
@@ -628,5 +628,5 @@ class OrdemServicoNormalizacaoTest(TestCase):
 ---
 
 **Documento específico para:** SGOS (Django 4.2 + PostgreSQL 16)  
-**Baseado em:** models.py, serializers.py, init.sql reais  
+**Baseado em:** models.py, serializers.py e schema legado reais  
 **Data:** 13/05/2026

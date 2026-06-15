@@ -5,6 +5,7 @@
  */
 
 const API_BASE_STORAGE_KEY = 'sgos_api_base';
+const WORKSPACE_HIDDEN_STORAGE_KEY = 'sgos_workspace_hidden';
 
 function _isLocalHost(host) {
   return host === 'localhost' || host === '127.0.0.1';
@@ -28,6 +29,7 @@ var API_BASE = window.API_BASE || localStorage.getItem(API_BASE_STORAGE_KEY) || 
 window.SGOS_API_BASE = API_BASE;
 
 let _apiBaseReadyPromise = null;
+let _meOverviewPromise = null;
 
 function _getApiBaseCandidates() {
   if (window.API_BASE) return [window.API_BASE];
@@ -91,6 +93,15 @@ async function ensureApiBase() {
     }
   })();
   return _apiBaseReadyPromise;
+}
+
+async function getMeOverviewCached() {
+  if (_meOverviewPromise) return _meOverviewPromise;
+  _meOverviewPromise = api.me.overview().catch(err => {
+    _meOverviewPromise = null;
+    throw err;
+  });
+  return _meOverviewPromise;
 }
 
 // ── Token management ──────────────────────────────────────────────────────────
@@ -238,6 +249,25 @@ const api = {
     return data;
   },
 
+  async resetPassword(payload) {
+    await ensureApiBase();
+    const res = await fetch(`${API_BASE}/auth/reset-password/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    let data = null;
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) data = await res.json();
+      else data = await res.text();
+    } catch {
+      data = null;
+    }
+    if (!res.ok) throw { status: res.status, data };
+    return data;
+  },
+
   async logout() {
     try { await api.post('/auth/logout/', { refresh: Auth.getRefresh() }); } catch {}
     Auth.clear();
@@ -246,7 +276,13 @@ const api = {
 
   // ── Clientes ──────────────────────────────────────────
   clientes: {
-    list:   (q = '')    => api.get(`/clientes/${q ? '?search=' + encodeURIComponent(q) : ''}`),
+    list:   (params = {}) => {
+      const normalized = typeof params === 'string'
+        ? (params ? { search: params } : {})
+        : (params || {});
+      const qs = new URLSearchParams(normalized).toString();
+      return api.get(`/clientes/${qs ? '?' + qs : ''}`);
+    },
     get:    (id)        => api.get(`/clientes/${id}/`),
     create: (body)      => api.post('/clientes/', body),
     update: (id, body)  => api.put(`/clientes/${id}/`, body),
@@ -277,14 +313,21 @@ const api = {
     },
   },
 
-  tecnicos: {
+  users: {
     list:   (params = {}) => {
       const qs = new URLSearchParams(params).toString();
-      return api.get(`/tecnicos/${qs ? '?' + qs : ''}`);
+      return api.get(`/admin/users/${qs ? '?' + qs : ''}`);
     },
-    create: (body)        => api.post('/tecnicos/', body),
-    update: (id, body)    => api.patch(`/tecnicos/${id}/`, body),
-    disable:(id)          => api.delete(`/tecnicos/${id}/`),
+    create: (body)        => api.post('/admin/users/', body),
+    update: (id, body)    => api.patch(`/admin/users/${id}/`, body),
+    disable:(id)          => api.delete(`/admin/users/${id}/`),
+  },
+
+  lookups: {
+    list:   (kind)          => api.get(`/admin/lookups/${encodeURIComponent(kind)}/`),
+    create: (kind, body)    => api.post(`/admin/lookups/${encodeURIComponent(kind)}/`, body),
+    update: (kind, id, body)=> api.patch(`/admin/lookups/${encodeURIComponent(kind)}/${id}/`, body),
+    disable:(kind, id)      => api.delete(`/admin/lookups/${encodeURIComponent(kind)}/${id}/`),
   },
 
   // ── Dashboard ─────────────────────────────────────────
@@ -335,6 +378,92 @@ function apiErrorMsg(err) {
   return JSON.stringify(d);
 }
 
+function isWorkspaceHidden() {
+  const stored = localStorage.getItem(WORKSPACE_HIDDEN_STORAGE_KEY);
+  if (stored === null) return true;
+  return stored === '1';
+}
+
+function applyWorkspaceVisibility(hidden) {
+  document.body.classList.toggle('workspace-hidden', hidden);
+  document.querySelectorAll('.btn-sidebar-toggle').forEach(btn => {
+    const label = hidden ? 'Mostrar workspace' : 'Ocultar workspace';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+    const text = btn.querySelector('.btn-sidebar-toggle-text');
+    if (text) text.textContent = label;
+  });
+}
+
+function toggleWorkspaceVisibility() {
+  const hidden = !document.body.classList.contains('workspace-hidden');
+  localStorage.setItem(WORKSPACE_HIDDEN_STORAGE_KEY, hidden ? '1' : '0');
+  applyWorkspaceVisibility(hidden);
+}
+
+function initSidebarToggle() {
+  if (!document.querySelector('.btn-sidebar-toggle') || !document.querySelector('.hero-card')) return;
+
+  applyWorkspaceVisibility(isWorkspaceHidden());
+
+  document.querySelectorAll('.btn-sidebar-toggle').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', toggleWorkspaceVisibility);
+  });
+}
+
+function getSidebarNavKey(link) {
+  if (!link) return '';
+  if (link.dataset && link.dataset.nav) return link.dataset.nav;
+  const href = String(link.getAttribute('href') || '');
+  if (href === 'dashboard.html') return 'dashboard';
+  if (href === 'abrir-chamado.html') return 'abrir';
+  if (href.includes('kanban.html?view=mine')) return 'mine';
+  if (href === 'kanban.html') return 'kanban';
+  if (href === 'clientes.html') return 'clientes';
+  if (href.startsWith('cadastros.html')) return 'cadastros';
+  return '';
+}
+
+function applySidebarPermissions(overview = null) {
+  const isAdmin = !!(overview?.user?.is_admin);
+  const tipo = overview?.user?.tipo || '';
+  const allowed = new Set(
+    tipo === 'somente_cliente'
+      ? ['dashboard', 'abrir', 'mine']
+      : isAdmin
+      ? ['dashboard', 'abrir', 'mine', 'kanban', 'clientes', 'cadastros']
+      : ['dashboard', 'abrir', 'mine', 'kanban']
+  );
+
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(link => {
+    const key = getSidebarNavKey(link);
+    if (!key) return;
+    link.style.display = allowed.has(key) ? '' : 'none';
+  });
+
+  const currentKey = getCurrentPageNavKey();
+  if (currentKey && !allowed.has(currentKey)) {
+    if (tipo === 'somente_cliente') {
+      window.location.replace(currentKey === 'kanban' ? 'kanban.html?view=mine' : 'dashboard.html');
+    }
+  }
+
+  return { isAdmin, tipo, allowed };
+}
+
+function getCurrentPageNavKey() {
+  const path = window.location.pathname.split('/').pop().toLowerCase();
+  const qs = new URLSearchParams(window.location.search);
+  if (path === 'dashboard.html' || path === '') return 'dashboard';
+  if (path === 'abrir-chamado.html') return 'abrir';
+  if (path === 'clientes.html') return 'clientes';
+  if (path === 'cadastros.html') return 'cadastros';
+  if (path === 'kanban.html') return (qs.get('view') || '').toLowerCase() === 'mine' ? 'mine' : 'kanban';
+  return '';
+}
+
 // Preenche sidebar com nome do usuário logado
 function fillSidebarUser() {
   const user = Auth.getUser();
@@ -343,25 +472,52 @@ function fillSidebarUser() {
   const roleEl = document.querySelector('.user-role');
   const avEl   = document.querySelector('.avatar');
   if (nameEl) nameEl.textContent = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user.username;
-  if (roleEl) roleEl.textContent = user.departamento || 'Funcionário';
   if (avEl)   avEl.textContent   = (user.first_name?.[0] || user.username[0]).toUpperCase() + (user.last_name?.[0] || '').toUpperCase();
 
   const mineLink = Array.from(document.querySelectorAll('a.nav-item')).find(a => (a.getAttribute('href') || '').includes('kanban.html?view=mine'));
-  if (mineLink) {
-    api.me.overview().then(o => {
-      const aguardando = o?.badges?.aguardando || 0;
-      const altaCritica = o?.badges?.alta_critica || 0;
-      const txt = [];
-      if (altaCritica) txt.push(`${altaCritica}`);
-      if (aguardando) txt.push(`${aguardando}`);
-      let badge = mineLink.querySelector('.nav-badge');
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'nav-badge';
-        mineLink.appendChild(badge);
-      }
-      badge.textContent = txt.length ? txt.join(' · ') : '';
-      badge.style.display = txt.length ? 'inline-flex' : 'none';
-    }).catch(() => {});
+  getMeOverviewCached().then(o => {
+    const { isAdmin } = applySidebarPermissions(o);
+    if (roleEl) {
+      const dept = o?.user?.departamento || user.departamento || '';
+      const tipo = o?.user?.tipo || user.tipo || '';
+      roleEl.textContent =
+        isAdmin ? 'Administrador'
+        : tipo === 'somente_cliente' ? 'Cliente'
+        : (dept || 'Técnico');
+    }
+
+    if (!mineLink) return;
+    const aguardando = o?.badges?.aguardando || 0;
+    const altaCritica = o?.badges?.alta_critica || 0;
+    const txt = [];
+    if (altaCritica) txt.push(`${altaCritica}`);
+    if (aguardando) txt.push(`${aguardando}`);
+    let badge = mineLink.querySelector('.nav-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      mineLink.appendChild(badge);
+    }
+    badge.textContent = txt.length ? txt.join(' · ') : '';
+    badge.style.display = txt.length ? 'inline-flex' : 'none';
+  }).catch(() => {
+    applySidebarPermissions(null);
+    if (roleEl) roleEl.textContent = user.tipo === 'somente_cliente' ? 'Cliente' : (user.departamento || 'Técnico');
+  });
+}
+
+async function requireAdminAccess(redirectTo = 'dashboard.html') {
+  try {
+    const overview = await getMeOverviewCached();
+    if (overview?.user?.is_admin) return true;
+  } catch {
   }
+  window.location.href = redirectTo;
+  return false;
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSidebarToggle);
+} else {
+  initSidebarToggle();
 }

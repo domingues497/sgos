@@ -4,125 +4,153 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chamados – Criar Conta</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
   
 </head>
 <body class="page-cadastro">
-  <div class="card">
-    <div class="brand">
-      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <h1>Criar Conta</h1>
-    </div>
-    <p class="subtitle">Preencha os dados para criar sua conta</p>
-
-    <div id="alert-box" class="alert"></div>
-
-    <div class="fields-stack">
-      <div class="grid-2">
-        <!-- Nome Completo -->
-        <div class="field">
-          <label>Nome Completo <span class="req">*</span></label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-            <input type="text" id="nome" placeholder="Digite seu nome completo"/>
-          </div>
+  <div class="auth-shell">
+    <section class="auth-hero">
+      <span class="auth-eyebrow">Workspace SGOS</span>
+      <h1>Crie sua conta e entre em uma central de atendimento mais organizada.</h1>
+      <p>Cadastre-se para abrir chamados, acompanhar prioridades e trabalhar com a mesma linguagem visual do restante do sistema.</p>
+      <div class="auth-highlights">
+        <div class="auth-highlight">
+          <strong>Visão centralizada</strong>
+          <span>Tenha acesso aos chamados, indicadores e fluxos da sua área em um só lugar.</span>
         </div>
-
-        <!-- E-mail -->
-        <div class="field">
-          <label>E-mail <span class="req">*</span></label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-            <input type="email" id="email" placeholder="seu@email.com"/>
-          </div>
+        <div class="auth-highlight">
+          <strong>Gestão com contexto</strong>
+          <span>Entre já vinculado ao seu departamento para manter a visibilidade correta da operação.</span>
         </div>
-
-        <!-- Usuário -->
-        <div class="field">
-          <label>Usuário <span class="req">*</span></label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-            <input type="text" id="usuario" placeholder="Digite seu usuário"/>
-          </div>
-        </div>
-
-        <!-- Departamento -->
-        <div class="field">
-          <label>Departamento <span class="req">*</span></label>
-          <div class="select-wrap">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
-            <select id="departamento">
-              <option value="">Selecione o departamento</option>
-              <option>TI</option>
-              <option>Suporte</option>
-              <option>Financeiro</option>
-              <option>RH</option>
-              <option>Comercial</option>
-              <option>Operações</option>
-            </select>
-            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Senha -->
-        <div class="field">
-          <label>Senha <span class="req">*</span></label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input type="password" id="senha" placeholder="Mínimo 6 caracteres"/>
-          </div>
-        </div>
-
-        <!-- Confirmar Senha -->
-        <div class="field">
-          <label>Confirmar Senha <span class="req">*</span></label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input type="password" id="confirmar" placeholder="Repita a senha"/>
-          </div>
+        <div class="auth-highlight">
+          <strong>Ação operacional</strong>
+          <span>Finalize o cadastro e comece a atuar no atendimento com menos fricção.</span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="terms">
-      <input type="checkbox" id="termos"/>
-      <label for="termos" class="terms-label">
-        Eu concordo com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>
-      </label>
-    </div>
+    <section class="auth-panel">
+      <div class="card">
+        <div class="brand">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <h1>Criar Conta</h1>
+        </div>
+        <p class="subtitle">Preencha os dados para criar sua conta</p>
 
-    <div class="btn-row">
-      <button class="btn-primary" onclick="handleCadastro()">Criar Conta</button>
-      <button class="btn-secondary" onclick="window.location.href='login.html'">Cancelar</button>
-    </div>
+        <div id="alert-box" class="alert"></div>
 
-    <div class="footer-link">
-      Já tem uma conta? <a href="login.html">Faça login</a>
-    </div>
+        <div class="fields-stack">
+          <div class="grid-2">
+            <div class="field">
+              <label>Nome Completo <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input type="text" id="nome" placeholder="Digite seu nome completo"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>E-mail <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <input type="email" id="email" placeholder="seu@email.com"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Usuário <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input type="text" id="usuario" placeholder="Digite seu usuário"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Telefone <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.15 10.8 19.86 19.86 0 0 1 .08 2.18 2 2 0 0 1 2.06 0h3a2 2 0 0 1 2 1.72c.12.89.33 1.77.62 2.62a2 2 0 0 1-.45 2.11L6.1 7.91a16 16 0 0 0 10 10l1.46-1.13a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.62.62A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <input type="text" id="telefone" placeholder="(00) 00000-0000"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Departamento <span class="req">*</span></label>
+              <div class="select-wrap">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <select id="departamento">
+                  <option value="">Selecione o departamento</option>
+                  <option>TI</option>
+                  <option>Suporte</option>
+                  <option>Financeiro</option>
+                  <option>RH</option>
+                  <option>Comercial</option>
+                  <option>Operações</option>
+                </select>
+                <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Senha <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" id="senha" placeholder="Mínimo 6 caracteres"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Confirmar Senha <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" id="confirmar" placeholder="Repita a senha"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" id="termos"/>
+          <label for="termos" class="terms-label">
+            Eu concordo com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>
+          </label>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="handleCadastro()">Criar Conta</button>
+          <button class="btn-secondary" onclick="window.location.href='login.html'">Cancelar</button>
+        </div>
+
+        <div class="footer-link">
+          Já tem uma conta? <a href="login.html">Faça login</a>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="api.js"></script>
@@ -146,13 +174,14 @@
       const nome     = document.getElementById('nome').value.trim();
       const email    = document.getElementById('email').value.trim();
       const usuario  = document.getElementById('usuario').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
       const depto    = document.getElementById('departamento').value;
       const senha    = document.getElementById('senha').value;
       const confirmar = document.getElementById('confirmar').value;
       const termos   = document.getElementById('termos').checked;
       alertBox.className = 'alert';
 
-      if (!nome || !email || !usuario || !depto || !senha || !confirmar) {
+      if (!nome || !email || !usuario || !telefone || !depto || !senha || !confirmar) {
         setAlert('Preencha todos os campos obrigatórios.'); return;
       }
       if (senha.length < 6) { setAlert('A senha deve ter no mínimo 6 caracteres.'); return; }
@@ -167,6 +196,7 @@
           last_name: rest.join(' '),
           username: usuario,
           email,
+          telefone,
           password: senha,
           password2: confirmar,
           departamento: depto,

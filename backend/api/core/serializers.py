@@ -27,11 +27,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=User.objects.all())])
     password  = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True, label='Confirmar senha')
+    telefone = serializers.CharField(required=True, allow_blank=False)
     departamento = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'username', 'email', 'password', 'password2', 'departamento')
+        fields = ('first_name', 'last_name', 'username', 'email', 'telefone', 'password', 'password2', 'departamento')
         extra_kwargs = {'first_name': {'required': True}, 'last_name': {'required': False}}
 
     def validate(self, attrs):
@@ -41,21 +42,68 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         departamento = validated_data.pop('departamento', '')
+        telefone = validated_data.pop('telefone')
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
         dep_fk = None
         if departamento:
             dep_fk, _ = OpcaoDepartamento.objects.get_or_create(nome=departamento)
-        PerfilUsuario.objects.create(usuario=user, departamento=dep_fk)
+        PerfilUsuario.objects.create(
+            usuario=user,
+            departamento=dep_fk,
+            tipo=PerfilUsuario.TIPO_CLIENTE,
+        )
+        Cliente.objects.create(
+            nome=f"{user.first_name} {user.last_name}".strip() or user.username,
+            email=user.email,
+            telefone=telefone,
+            departamento=dep_fk,
+            usuario=user,
+        )
+        return user
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, label='Confirmar senha')
+
+    def validate_username(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Informe o usuário.')
+        return value
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({'password': 'As senhas não conferem.'})
+
+        username = attrs['username'].strip()
+        email = attrs['email'].strip().lower()
+        try:
+            user = User.objects.get(username=username, email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'email': 'Usuário e e-mail não conferem.'})
+
+        attrs['user_obj'] = user
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.validated_data['user_obj']
+        user.set_password(self.validated_data['password'])
+        user.save(update_fields=['password'])
         return user
 
 
 class UserSerializer(serializers.ModelSerializer):
+    tipo = serializers.SerializerMethodField()
+    cliente_id = serializers.SerializerMethodField()
     departamento = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'departamento')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'departamento', 'tipo', 'cliente_id')
 
     def get_departamento(self, obj):
         try:
@@ -66,13 +114,51 @@ class UserSerializer(serializers.ModelSerializer):
         except PerfilUsuario.DoesNotExist:
             return ''
 
+    def get_tipo(self, obj):
+        if obj.is_superuser:
+            return PerfilUsuario.TIPO_ADMIN
+        try:
+            return obj.perfil.tipo or PerfilUsuario.TIPO_CLIENTE
+        except PerfilUsuario.DoesNotExist:
+            return PerfilUsuario.TIPO_CLIENTE
 
-class TecnicoSerializer(serializers.ModelSerializer):
+    def get_cliente_id(self, obj):
+        cliente = getattr(obj, 'cliente_vinculado', None)
+        return getattr(cliente, 'id', None)
+
+
+def sync_user_role(user, tipo, departamento_obj=None):
+    perfil, _ = PerfilUsuario.objects.get_or_create(usuario=user)
+    perfil.tipo = tipo or PerfilUsuario.TIPO_CLIENTE
+    perfil.departamento = departamento_obj
+    perfil.save()
+
+    grp, _ = Group.objects.get_or_create(name='Tecnicos')
+    user.groups.remove(grp)
+    user.is_superuser = tipo == PerfilUsuario.TIPO_ADMIN
+    user.is_staff = user.is_superuser
+    if tipo == PerfilUsuario.TIPO_TECNICO:
+        user.groups.add(grp)
+    user.save(update_fields=['is_superuser', 'is_staff'])
+    return perfil
+
+
+ADMIN_USER_TYPE_CHOICES = [
+    (PerfilUsuario.TIPO_ADMIN, 'Administrador'),
+    (PerfilUsuario.TIPO_TECNICO, 'Técnico'),
+]
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
     departamento = serializers.SerializerMethodField()
+    tipo = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'departamento')
+        fields = (
+            'id', 'username', 'first_name', 'last_name', 'email', 'is_active',
+            'departamento', 'tipo',
+        )
 
     def get_departamento(self, obj):
         try:
@@ -83,14 +169,22 @@ class TecnicoSerializer(serializers.ModelSerializer):
         except Exception:
             return ''
 
+    def get_tipo(self, obj):
+        if obj.is_superuser:
+            return PerfilUsuario.TIPO_ADMIN
+        try:
+            return obj.perfil.tipo or PerfilUsuario.TIPO_CLIENTE
+        except Exception:
+            return PerfilUsuario.TIPO_CLIENTE
 
-class TecnicoCreateSerializer(serializers.Serializer):
+class AdminUserCreateSerializer(serializers.Serializer):
     username = serializers.CharField()
     first_name = serializers.CharField(required=False, allow_blank=True, default='')
     last_name = serializers.CharField(required=False, allow_blank=True, default='')
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, min_length=6)
     departamento = serializers.CharField(required=False, allow_blank=True, default='')
+    tipo = serializers.ChoiceField(choices=ADMIN_USER_TYPE_CHOICES)
 
     def validate_username(self, value):
         value = value.strip()
@@ -108,13 +202,22 @@ class TecnicoCreateSerializer(serializers.Serializer):
 
     def validate_departamento(self, value):
         value = (value or '').strip()
-        if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
+        if value and not OpcaoDepartamento.objects.filter(nome=value, ativo=True).exists():
             raise serializers.ValidationError('Departamento inválido.')
         return value
+
+    def validate(self, attrs):
+        tipo = attrs.get('tipo')
+        departamento = (attrs.get('departamento') or '').strip()
+
+        if tipo == PerfilUsuario.TIPO_TECNICO and not departamento:
+            raise serializers.ValidationError({'departamento': 'Departamento é obrigatório para técnico.'})
+        return attrs
 
     def create(self, validated_data):
         departamento = validated_data.pop('departamento', '') or ''
         password = validated_data.pop('password')
+        tipo = validated_data.pop('tipo')
 
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
@@ -126,19 +229,31 @@ class TecnicoCreateSerializer(serializers.Serializer):
         dep_fk = None
         if departamento:
             dep_fk = OpcaoDepartamento.objects.get(nome=departamento)
-        PerfilUsuario.objects.create(usuario=user, departamento=dep_fk)
-
-        grp, _ = Group.objects.get_or_create(name='Tecnicos')
-        user.groups.add(grp)
+        sync_user_role(user, tipo, dep_fk)
         return user
 
 
-class TecnicoUpdateSerializer(serializers.Serializer):
+class AdminUserUpdateSerializer(serializers.Serializer):
+    username = serializers.CharField(required=False, allow_blank=False)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     departamento = serializers.CharField(required=False, allow_blank=True)
     is_active = serializers.BooleanField(required=False)
+    tipo = serializers.ChoiceField(choices=ADMIN_USER_TYPE_CHOICES, required=False)
+    password = serializers.CharField(required=False, allow_blank=True, min_length=6, write_only=True)
+
+    def validate_username(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Usuário não pode ser vazio.')
+        user = self.context.get('user_obj')
+        qs = User.objects.filter(username=value)
+        if user:
+            qs = qs.exclude(pk=user.pk)
+        if qs.exists():
+            raise serializers.ValidationError('Usuário já existe.')
+        return value
 
     def validate_email(self, value):
         value = (value or '').strip()
@@ -154,11 +269,31 @@ class TecnicoUpdateSerializer(serializers.Serializer):
 
     def validate_departamento(self, value):
         value = (value or '').strip()
-        if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
+        if value and not OpcaoDepartamento.objects.filter(nome=value, ativo=True).exists():
             raise serializers.ValidationError('Departamento inválido.')
         return value
 
+    def validate(self, attrs):
+        user = self.context.get('user_obj')
+        current_tipo = PerfilUsuario.TIPO_ADMIN if getattr(user, 'is_superuser', False) else getattr(getattr(user, 'perfil', None), 'tipo', PerfilUsuario.TIPO_TECNICO)
+        tipo = attrs.get('tipo', current_tipo)
+        departamento = attrs.get('departamento', None)
+
+        dept_value = (departamento or '').strip() if departamento is not None else None
+        current_dept = ''
+        try:
+            current_dept = user.perfil.departamento.nome if user.perfil.departamento_id else ''
+        except Exception:
+            current_dept = ''
+        effective_dept = dept_value if dept_value is not None else current_dept
+
+        if tipo == PerfilUsuario.TIPO_TECNICO and not effective_dept:
+            raise serializers.ValidationError({'departamento': 'Departamento é obrigatório para técnico.'})
+        return attrs
+
     def update(self, instance, validated_data):
+        if 'username' in validated_data:
+            instance.username = validated_data['username']
         if 'first_name' in validated_data:
             instance.first_name = validated_data['first_name']
         if 'last_name' in validated_data:
@@ -167,20 +302,72 @@ class TecnicoUpdateSerializer(serializers.Serializer):
             instance.email = validated_data['email']
         if 'is_active' in validated_data:
             instance.is_active = validated_data['is_active']
+        if 'password' in validated_data and validated_data['password']:
+            instance.set_password(validated_data['password'])
         instance.save()
 
-        if 'departamento' in validated_data:
-            dep_name = validated_data['departamento']
-            try:
-                perfil = instance.perfil
-            except Exception:
-                perfil = PerfilUsuario(usuario=instance)
-            if dep_name:
-                perfil.departamento = OpcaoDepartamento.objects.get(nome=dep_name)
-            else:
-                perfil.departamento = None
-            perfil.save()
+        try:
+            perfil = instance.perfil
+        except Exception:
+            perfil = PerfilUsuario(usuario=instance)
+
+        dep_name = validated_data.get('departamento', None)
+        if dep_name is None:
+            departamento_obj = perfil.departamento if getattr(perfil, 'departamento_id', None) else None
+        else:
+            departamento_obj = OpcaoDepartamento.objects.get(nome=dep_name) if dep_name else None
+        tipo = validated_data.get('tipo', PerfilUsuario.TIPO_ADMIN if instance.is_superuser else (perfil.tipo or PerfilUsuario.TIPO_TECNICO))
+        sync_user_role(instance, tipo, departamento_obj)
         return instance
+
+
+class OpcaoLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'nome', 'ativo')
+
+    def validate_nome(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Nome não pode ser vazio.')
+        model = self.Meta.model
+        qs = model.objects.filter(nome__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError('Já existe um cadastro com este nome.')
+        return value
+
+
+class OpcaoLookupNivelSerializer(OpcaoLookupSerializer):
+    nivel = serializers.IntegerField(min_value=1, max_value=99)
+
+    class Meta(OpcaoLookupSerializer.Meta):
+        fields = ('id', 'nome', 'nivel', 'ativo')
+
+
+class DepartamentoSerializer(OpcaoLookupSerializer):
+    class Meta(OpcaoLookupSerializer.Meta):
+        model = OpcaoDepartamento
+
+
+class TipoSerializer(OpcaoLookupSerializer):
+    class Meta(OpcaoLookupSerializer.Meta):
+        model = OpcaoTipo
+
+
+class CategoriaSerializer(OpcaoLookupSerializer):
+    class Meta(OpcaoLookupSerializer.Meta):
+        model = OpcaoCategoria
+
+
+class PrioridadeSerializer(OpcaoLookupNivelSerializer):
+    class Meta(OpcaoLookupNivelSerializer.Meta):
+        model = OpcaoPrioridade
+
+
+class UrgenciaSerializer(OpcaoLookupNivelSerializer):
+    class Meta(OpcaoLookupNivelSerializer.Meta):
+        model = OpcaoUrgencia
 
 
 # ── CLIENTE ───────────────────────────────────────────────────────────────────
@@ -188,10 +375,15 @@ class ClienteSerializer(serializers.ModelSerializer):
     total_os      = serializers.SerializerMethodField()
     os_abertas    = serializers.SerializerMethodField()
     tem_os_ativa  = serializers.BooleanField(read_only=True)
+    departamento = serializers.CharField(required=True, allow_blank=False, write_only=True)
+    usuario_id = serializers.IntegerField(read_only=True)
+    usuario_username = serializers.CharField(required=False, allow_blank=False, write_only=True)
+    usuario_password = serializers.CharField(required=False, allow_blank=True, write_only=True, min_length=6)
 
     class Meta:
         model  = Cliente
         fields = ('id', 'nome', 'telefone', 'email', 'endereco',
+                  'departamento', 'usuario_id', 'usuario_username', 'usuario_password',
                   'criado_em', 'total_os', 'os_abertas', 'tem_os_ativa')
         read_only_fields = ('criado_em',)
 
@@ -205,6 +397,102 @@ class ClienteSerializer(serializers.ModelSerializer):
         if not value.strip():
             raise serializers.ValidationError('Nome não pode ser vazio.')
         return value.strip()
+
+    def validate_departamento(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Departamento é obrigatório.')
+        if not OpcaoDepartamento.objects.filter(nome=value, ativo=True).exists():
+            raise serializers.ValidationError('Departamento inválido.')
+        return value
+
+    def validate_usuario_username(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Usuário de acesso é obrigatório.')
+        qs = User.objects.filter(username=value)
+        if self.instance and getattr(self.instance, 'usuario_id', None):
+            qs = qs.exclude(pk=self.instance.usuario_id)
+        if qs.exists():
+            raise serializers.ValidationError('Usuário de acesso já existe.')
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if not self.instance:
+            if not attrs.get('usuario_username'):
+                raise serializers.ValidationError({'usuario_username': 'Usuário de acesso é obrigatório.'})
+            if not attrs.get('usuario_password'):
+                raise serializers.ValidationError({'usuario_password': 'Senha de acesso é obrigatória.'})
+        return attrs
+
+    def create(self, validated_data):
+        departamento = validated_data.pop('departamento')
+        username = validated_data.pop('usuario_username')
+        password = validated_data.pop('usuario_password')
+        dept_obj = OpcaoDepartamento.objects.get(nome=departamento)
+
+        nome = validated_data.get('nome', '').strip()
+        partes_nome = nome.split()
+        first_name = partes_nome[0] if partes_nome else ''
+        last_name = ' '.join(partes_nome[1:]) if len(partes_nome) > 1 else ''
+
+        user = User.objects.create_user(
+            username=username,
+            email=validated_data.get('email', ''),
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+        )
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
+        user.save()
+        sync_user_role(user, PerfilUsuario.TIPO_CLIENTE, dept_obj)
+
+        validated_data['departamento'] = dept_obj
+        validated_data['usuario'] = user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        departamento = validated_data.pop('departamento', None)
+        username = validated_data.pop('usuario_username', None)
+        password = validated_data.pop('usuario_password', None)
+        if departamento is not None:
+            instance.departamento = OpcaoDepartamento.objects.get(nome=departamento)
+
+        user = getattr(instance, 'usuario', None)
+        if not user:
+            if not username:
+                raise serializers.ValidationError({'usuario_username': 'Cliente sem usuário vinculado. Informe um usuário.'})
+            if not password:
+                raise serializers.ValidationError({'usuario_password': 'Cliente sem usuário vinculado. Informe uma senha.'})
+            user = User.objects.create_user(
+                username=username,
+                email=validated_data.get('email', instance.email),
+                password=password,
+            )
+            instance.usuario = user
+
+        if username is not None:
+            user.username = username
+        user.email = validated_data.get('email', instance.email)
+        partes_nome = (validated_data.get('nome', instance.nome) or '').strip().split()
+        user.first_name = partes_nome[0] if partes_nome else ''
+        user.last_name = ' '.join(partes_nome[1:]) if len(partes_nome) > 1 else ''
+        if password:
+            user.set_password(password)
+        user.is_active = True
+        user.save()
+        sync_user_role(user, PerfilUsuario.TIPO_CLIENTE, instance.departamento)
+        return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['departamento'] = instance.departamento.nome if getattr(instance, 'departamento_id', None) else ''
+        data['usuario_id'] = instance.usuario_id or None
+        data['usuario_username'] = instance.usuario.username if getattr(instance, 'usuario_id', None) else ''
+        return data
 
 
 # ── HISTÓRICO ─────────────────────────────────────────────────────────────────
@@ -442,6 +730,29 @@ class OrdemServicoCreateSerializer(serializers.ModelSerializer):
         if value and not OpcaoDepartamento.objects.filter(nome=value).exists():
             raise serializers.ValidationError('Departamento inválido.')
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        cliente = attrs.get('cliente') or getattr(self.instance, 'cliente', None)
+        departamento = attrs.get('departamento')
+
+        if cliente and not getattr(cliente, 'departamento_id', None):
+            raise serializers.ValidationError({'cliente': 'Cliente sem departamento cadastrado. Atualize o cadastro do cliente.'})
+
+        if cliente and departamento and (
+            not user or getattr(getattr(user, 'perfil', None), 'tipo', '') != PerfilUsuario.TIPO_CLIENTE
+        ) and cliente.departamento.nome != departamento:
+            raise serializers.ValidationError({'departamento': 'Departamento do chamado deve ser o mesmo departamento do cliente.'})
+
+        if user and getattr(getattr(user, 'perfil', None), 'tipo', '') == PerfilUsuario.TIPO_CLIENTE:
+            if (attrs.get('prioridade') or '').strip():
+                raise serializers.ValidationError({'prioridade': 'Cliente não pode definir prioridade do chamado.'})
+            if (attrs.get('urgencia') or '').strip():
+                raise serializers.ValidationError({'urgencia': 'Cliente não pode definir urgência do chamado.'})
+
+        return attrs
 
     def create(self, validated_data):
         prioridade = validated_data.pop('prioridade', '') or ''

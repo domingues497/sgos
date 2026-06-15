@@ -8,6 +8,7 @@ urlpatterns = [
     path('auth/register/',        views.RegisterView.as_view(),         name='register'),
     path('auth/login/',           TokenObtainPairView.as_view(),        name='login'),       # RF002
     path('auth/refresh/',         TokenRefreshView.as_view(),           name='token-refresh'),
+    path('auth/reset-password/',  views.PasswordResetView.as_view(),    name='reset-password'),
     path('auth/logout/',          views.LogoutView.as_view(),           name='logout'),
     path('auth/me/',              views.MeView.as_view(),               name='me'),
     path('me/overview/',          views.MeOverviewView.as_view(),       name='me-overview'),
@@ -28,7 +29,9 @@ urlpatterns = [
     path('workorders/meta/',      views.meta_view,                      name='meta'),        # diagrama seq.
     path('dashboard/',            views.dashboard_view,                 name='dashboard'),
 
-    # ── Admin: Técnicos ───────────────────────────────────
-    path('tecnicos/',             views.TecnicoListCreateView.as_view(), name='tecnicos'),
-    path('tecnicos/<int:pk>/',    views.TecnicoDetailView.as_view(),     name='tecnico'),
+    # ── Admin: Usuários ───────────────────────────────────
+    path('admin/users/',          views.AdminUserListCreateView.as_view(), name='admin-users'),
+    path('admin/users/<int:pk>/', views.AdminUserDetailView.as_view(),     name='admin-user'),
+    path('admin/lookups/<str:kind>/', views.LookupListCreateView.as_view(), name='lookup-list'),
+    path('admin/lookups/<str:kind>/<int:pk>/', views.LookupDetailView.as_view(), name='lookup-detail'),
 ]

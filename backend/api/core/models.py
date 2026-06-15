@@ -81,6 +81,22 @@ class Cliente(models.Model):
     email         = models.EmailField()
     telefone      = models.CharField(max_length=20)
     endereco      = models.CharField(max_length=300, blank=True)
+    usuario = models.OneToOneField(
+        User,
+        on_delete=models.PROTECT,
+        related_name='cliente_vinculado',
+        null=True,
+        blank=True,
+        db_column='usuario_id',
+    )
+    departamento = models.ForeignKey(
+        OpcaoDepartamento,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='clientes',
+        db_column='departamento_id',
+    )
     criado_em     = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
@@ -335,8 +351,18 @@ class AnotacaoERP(models.Model):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class PerfilUsuario(models.Model):
+    TIPO_ADMIN = 'admin'
+    TIPO_TECNICO = 'tecnico'
+    TIPO_CLIENTE = 'somente_cliente'
+    TIPO_CHOICES = [
+        (TIPO_ADMIN, 'Administrador'),
+        (TIPO_TECNICO, 'Técnico'),
+        (TIPO_CLIENTE, 'Somente Cliente'),
+    ]
+
     usuario       = models.OneToOneField(User, on_delete=models.CASCADE,
                                          related_name='perfil', db_column='usuario_id')
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_CLIENTE)
     departamento = models.ForeignKey(
         OpcaoDepartamento,
         on_delete=models.PROTECT,

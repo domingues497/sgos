@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chamados – Abrir Novo Chamado</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
   
 </head>
@@ -20,29 +20,34 @@
       </svg>
       <span>Chamados</span>
     </div>
+    <div class="sidebar-section-label">Menu</div>
     <nav class="sidebar-nav">
-      <a class="nav-item" href="dashboard.html">
+      <a class="nav-item" data-nav="dashboard" href="dashboard.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Dashboard
       </a>
-      <a class="nav-item active" href="abrir-chamado.html">
+      <a class="nav-item active" data-nav="abrir" href="abrir-chamado.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
         Abrir Chamado
       </a>
-      <a class="nav-item" href="kanban.html?view=mine">
+      <a class="nav-item" data-nav="mine" href="kanban.html?view=mine">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Meus Chamados
       </a>
-      <a class="nav-item" href="kanban.html">
+      <a class="nav-item" data-nav="kanban" href="kanban.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
         Kanban
       </a>
-      <a class="nav-item" href="clientes.html">
+      <a class="nav-item" data-nav="clientes" href="clientes.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Clientes
       </a>
+      <a class="nav-item" id="nav-cadastros" data-nav="cadastros" href="cadastros.html" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+        Cadastros
+      </a>
     </nav>
-    <div class="sidebar-footer sidebar-footer--stack">
+    <div class="sidebar-footer">
       <div class="sidebar-userrow">
         <div class="avatar">GM</div>
         <div class="user-info">
@@ -50,33 +55,66 @@
           <div class="user-role">Funcionário</div>
         </div>
       </div>
-      <button class="btn-logout" onclick="api.logout()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sair
-      </button>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="main">
     <div class="topbar">
-      <svg class="breadcrumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span class="breadcrumb-muted">Dashboard</span>
-      <span class="breadcrumb-muted">/</span>
-      <span class="topbar-title">Abrir Novo Chamado</span>
+      <div class="topbar-left">
+        <svg class="breadcrumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="breadcrumb-muted">Dashboard</span>
+        <span class="breadcrumb-muted">/</span>
+        <span class="topbar-title">Abrir Novo Chamado</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-sidebar-toggle" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="13" y1="9" x2="17" y2="9"/><line x1="13" y1="15" x2="17" y2="15"/></svg>
+          <span class="btn-sidebar-toggle-text">Mostrar workspace</span>
+        </button>
+        <button class="btn-logout-top" onclick="api.logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sair
+        </button>
+      </div>
     </div>
 
     <div class="content">
-      <div class="page-header">
-        <h2>Abrir Novo Chamado</h2>
-        <p>Preencha os dados abaixo para criar um novo chamado</p>
+      <div class="hero-card">
+        <div class="hero-main">
+          <span class="hero-eyebrow">Workspace SGOS</span>
+          <div class="page-header">
+            <h2 id="open-hero-title">Abrir Novo Chamado</h2>
+            <p id="open-hero-text">Centralize a abertura de solicitações e registre o contexto necessário para agilizar a triagem e o atendimento.</p>
+          </div>
+        </div>
+        <div class="hero-highlights">
+          <div class="hero-highlight">
+            <strong id="open-highlight-1-title">Visão centralizada</strong>
+            <span id="open-highlight-1-text">Preencha tipo, prioridade e departamento com clareza para acelerar a triagem.</span>
+          </div>
+          <div class="hero-highlight">
+            <strong id="open-highlight-2-title">Gestão com contexto</strong>
+            <span id="open-highlight-2-text">Use descrição e anexos para reduzir retrabalho e facilitar a análise do chamado.</span>
+          </div>
+          <div class="hero-highlight">
+            <strong id="open-highlight-3-title">Ação operacional</strong>
+            <span id="open-highlight-3-text">Após abrir, acompanhe a evolução do chamado pelo Dashboard, Kanban ou Meus Chamados.</span>
+          </div>
+        </div>
       </div>
 
       <div class="form-section">
+        <div class="form-section-head">
+          <div>
+            <div class="form-section-title">Dados do Chamado</div>
+            <div class="form-section-subtitle">Campos obrigatórios marcados com <span class="req">*</span></div>
+          </div>
+        </div>
         <div class="grid-2">
 
           <!-- Cliente (full width) -->
-          <div class="field field-full">
+          <div class="field field-span-2" id="field-cliente">
             <label>Cliente <span class="req">*</span></label>
             <div class="select-wrap">
               <select id="cliente">
@@ -84,6 +122,7 @@
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
+            <input type="text" id="cliente-readonly" style="display:none;" readonly/>
           </div>
 
           <!-- Tipo de Chamado -->
@@ -92,10 +131,6 @@
             <div class="select-wrap">
               <select id="tipo">
                 <option value="">Selecione o tipo</option>
-                <option>Incidente</option>
-                <option>Solicitação de Serviço</option>
-                <option>Problema</option>
-                <option>Manutenção</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
@@ -107,70 +142,53 @@
             <div class="select-wrap">
               <select id="categoria">
                 <option value="">Selecione a categoria</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Software">Software</option>
-                <option value="Rede">Rede</option>
-                <option value="Acesso">Acesso</option>
-                <option value="Outros">Outros</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
           </div>
 
           <!-- Prioridade -->
-          <div class="field">
+          <div class="field" id="field-prioridade">
             <label>Prioridade <span class="req">*</span></label>
             <div class="select-wrap">
               <select id="prioridade">
                 <option value="">Selecione a prioridade</option>
-                <option>Baixa</option>
-                <option>Média</option>
-                <option>Alta</option>
-                <option>Crítica</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
           </div>
 
           <!-- Urgência -->
-          <div class="field">
+          <div class="field" id="field-urgencia">
             <label>Urgência <span class="req">*</span></label>
             <div class="select-wrap">
               <select id="urgencia">
                 <option value="">Selecione a urgência</option>
-                <option>Baixa</option>
-                <option>Média</option>
-                <option>Alta</option>
-                <option>Imediata</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
           </div>
 
           <!-- Departamento (full width) -->
-          <div class="field field-full">
+          <div class="field" id="field-departamento">
             <label>Departamento <span class="req">*</span></label>
             <div class="select-wrap">
               <select id="departamento">
                 <option value="">Selecione o departamento</option>
-                <option>TI</option>
-                <option>Suporte</option>
-                <option>Financeiro</option>
-                <option>RH</option>
-                <option>Comercial</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
+            <span class="hint" id="departamento-hint">Selecione o setor para o qual o chamado deve ser direcionado.</span>
           </div>
 
           <!-- Título / Resumo (full width) -->
-          <div class="field field-full">
+          <div class="field field-span-2">
             <label>Título / Resumo <span class="req">*</span></label>
             <input type="text" id="titulo" placeholder="Ex: Computador não liga, Solicitar acesso ao sistema..."/>
           </div>
 
           <!-- Descrição Detalhada (full width) -->
-          <div class="field field-full">
+          <div class="field field-full field-description">
             <label>Descrição Detalhada <span class="req">*</span></label>
             <textarea id="descricao" placeholder="Descreva detalhadamente o problema ou solicitação..."></textarea>
             <span class="hint">Forneça o máximo de detalhes possível para facilitar o atendimento</span>
@@ -193,7 +211,7 @@
 
         </div>
 
-        <div class="info-banner">
+        <div class="info-banner" id="open-info-banner">
           ℹ️ Importante: Após a abertura do chamado, você receberá um número de protocolo e poderá acompanhar o andamento através do painel Kanban ou Dashboard.
         </div>
 
@@ -216,6 +234,51 @@
 <script>
 const __authed = Auth.requireAuth();
 if (__authed) fillSidebarUser();
+let __clientes = [];
+let __overview = null;
+let __isClient = false;
+
+function syncClientDepartment() {
+  const clienteId = parseInt(document.getElementById('cliente')?.value || '0', 10);
+  const cliente = __clientes.find(c => c.id === clienteId);
+  const deptEl = document.getElementById('departamento');
+  if (!deptEl) return;
+  if (__isClient) {
+    deptEl.style.borderColor = deptEl.value ? '' : '#ef4444';
+    return;
+  }
+  deptEl.value = cliente?.departamento || '';
+  deptEl.style.borderColor = deptEl.value ? '' : '#ef4444';
+}
+
+function adaptOpenFormForClient() {
+  if (!__isClient) return;
+  const heroTitle = document.getElementById('open-hero-title');
+  const heroText = document.getElementById('open-hero-text');
+  const infoBanner = document.getElementById('open-info-banner');
+  const clienteSelect = document.getElementById('cliente');
+  const clienteReadonly = document.getElementById('cliente-readonly');
+  const fieldPrioridade = document.getElementById('field-prioridade');
+  const fieldUrgencia = document.getElementById('field-urgencia');
+  const deptHint = document.getElementById('departamento-hint');
+
+  if (heroTitle) heroTitle.textContent = 'Abrir Minha Solicitação';
+  if (heroText) heroText.textContent = 'Abra um chamado para o seu próprio cadastro com o departamento já identificado automaticamente.';
+  document.getElementById('open-highlight-1-title').textContent = 'Abertura guiada';
+  document.getElementById('open-highlight-1-text').textContent = 'Seu cliente já vem preenchido automaticamente para evitar inconsistências no cadastro.';
+  document.getElementById('open-highlight-2-title').textContent = 'Contexto objetivo';
+  document.getElementById('open-highlight-2-text').textContent = 'Informe o setor de destino, tipo, categoria, título, descrição detalhada e anexos para facilitar a análise.';
+  document.getElementById('open-highlight-3-title').textContent = 'Acompanhamento';
+  document.getElementById('open-highlight-3-text').textContent = 'Após abrir, acompanhe tudo em Meus Chamados sem alterar dados internos da operação.';
+  if (infoBanner) infoBanner.textContent = 'Importante: seu cadastro é fixo nesta abertura. Escolha o setor de destino e informe os dados da solicitação para acompanhar o andamento em Meus Chamados.';
+  if (fieldPrioridade) fieldPrioridade.style.display = 'none';
+  if (fieldUrgencia) fieldUrgencia.style.display = 'none';
+  if (deptHint) deptHint.textContent = 'Escolha para qual setor o chamado deve ser encaminhado.';
+  if (clienteSelect && clienteReadonly) {
+    clienteSelect.style.display = 'none';
+    clienteReadonly.style.display = '';
+  }
+}
 
 // ─── CARREGA METADADOS DA API ────────────────────────────
 async function loadMeta() {
@@ -225,6 +288,8 @@ async function loadMeta() {
     const populate = (id, items) => {
       const el = document.getElementById(id);
       if (!el) return;
+      const firstOption = el.querySelector('option')?.outerHTML || '<option value="">Selecione</option>';
+      el.innerHTML = firstOption;
       items.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.value || item;
@@ -234,7 +299,7 @@ async function loadMeta() {
     };
 
     populate('tipo',       meta.tipo);
-    populate('categoria',  meta.tipo.map(t => ({ value: t.label, label: t.label })));
+    populate('categoria',  meta.categoria || []);
     populate('prioridade', meta.prioridade);
     populate('urgencia',   meta.urgencia);
     populate('departamento', meta.departamentos.map(d => ({ value: d, label: d })));
@@ -243,12 +308,30 @@ async function loadMeta() {
     const clientRes = await api.clientes.list();
     const clSel = document.getElementById('cliente');
     if (clSel) {
-      (clientRes.results || []).forEach(c => {
+      clSel.innerHTML = '<option value="">Selecione o cliente</option>';
+      __clientes = clientRes.results || [];
+      __clientes.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
-        opt.textContent = c.nome;
+        opt.textContent = c.departamento ? `${c.nome} (${c.departamento})` : c.nome;
         clSel.appendChild(opt);
       });
+      clSel.addEventListener('change', syncClientDepartment);
+    }
+
+    if (__isClient) {
+      const myClientId = __overview?.user?.cliente_id || null;
+      const myClient = __clientes.find(c => c.id === myClientId) || __clientes[0];
+      if (!myClient) {
+        showToast('error', 'Seu usuário não possui cliente vinculado para abrir chamados.');
+        return;
+      }
+      if (clSel) {
+        clSel.value = String(myClient.id);
+        clSel.disabled = true;
+      }
+      const clReadonly = document.getElementById('cliente-readonly');
+      if (clReadonly) clReadonly.value = myClient.nome || '';
     }
   } catch(err) {
     showToast('error', 'Erro ao carregar dados do formulário.');
@@ -256,7 +339,9 @@ async function loadMeta() {
 }
 
 async function handleSubmit() {
-  const required = ['tipo','prioridade','urgencia','departamento','titulo','descricao'];
+  const required = __isClient
+    ? ['tipo','categoria','departamento','titulo','descricao']
+    : ['tipo','categoria','prioridade','urgencia','departamento','titulo','descricao'];
   let ok = true;
   required.forEach(id => {
     const el = document.getElementById(id);
@@ -272,6 +357,17 @@ async function handleSubmit() {
   if (!clienteEl || !clienteEl.value) {
     if (clienteEl) clienteEl.style.borderColor = '#ef4444';
     ok = false;
+  } else {
+    clienteEl.style.borderColor = '';
+    syncClientDepartment();
+  }
+
+  if (__isClient) {
+    const deptEl = document.getElementById('departamento');
+    if (!deptEl || !deptEl.value) {
+      if (deptEl) deptEl.style.borderColor = '#ef4444';
+      ok = false;
+    }
   }
 
   if (!ok) { showToast('error','Preencha todos os campos obrigatórios.'); return; }
@@ -287,10 +383,12 @@ async function handleSubmit() {
       descricao:   document.getElementById('descricao').value.trim(),
       tipo:        document.getElementById('tipo').value,
       categoria:   document.getElementById('categoria').value,
-      prioridade:  document.getElementById('prioridade').value,
-      urgencia:    document.getElementById('urgencia').value,
       departamento:document.getElementById('departamento').value,
     };
+    if (!__isClient) {
+      payload.prioridade = document.getElementById('prioridade').value;
+      payload.urgencia = document.getElementById('urgencia').value;
+    }
 
     const os = await api.os.create(payload);
 
@@ -323,7 +421,18 @@ if (dz) {
   });
 }
 
-if (__authed) loadMeta();
+if (__authed) {
+  getMeOverviewCached()
+    .then(overview => {
+      __overview = overview || null;
+      __isClient = __overview?.user?.tipo === 'somente_cliente';
+      if (__isClient) adaptOpenFormForClient();
+    })
+    .catch(() => {})
+    .finally(() => {
+      loadMeta();
+    });
+}
 
 </script>
 </body>

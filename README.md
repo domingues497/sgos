@@ -40,7 +40,13 @@ Acesse: `http://localhost:5010/login.html`
 
 ## Script de atalho
 
-Existe o script [start-dev.ps1](file:///c:/Users/Rafael/Desktop/Unicesumar/imers%C3%A3o/sgos/start-dev.ps1) para ajudar a iniciar front/back (padrão: **front 5010** / **back 8010**).
+Se preferir iniciar tudo de uma vez no Windows, use:
+
+```powershell
+.\start-dev.bat
+```
+
+Ele sobe o backend na porta `8010` e o frontend na porta `5010`.
 
 ---
 
@@ -145,5 +151,6 @@ frontend/            ← HTML/JS/CSS (servido via http.server)
 backend/api/         ← Django (DRF + JWT)
   core/              ← models/serializers/views/urls
   sgos/              ← settings/urls
-start-dev.ps1        ← atalho para dev
+start-dev.bat        ← atalho para desenvolvimento local
+docs/especificacao/  ← documentação de requisitos e diagramas
 ```

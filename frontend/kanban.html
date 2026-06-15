@@ -19,29 +19,33 @@
     <span>Chamados</span>
   </div>
   <div class="sidebar-section-label">Menu</div>
-  <nav>
-    <a class="nav-item" href="dashboard.html">
+  <nav class="sidebar-nav">
+    <a class="nav-item" data-nav="dashboard" href="dashboard.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
-    <a class="nav-item" href="abrir-chamado.html">
+    <a class="nav-item" data-nav="abrir" href="abrir-chamado.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       Abrir Chamado
     </a>
-    <a class="nav-item" href="kanban.html?view=mine">
+    <a class="nav-item" data-nav="mine" href="kanban.html?view=mine">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Meus Chamados
     </a>
-    <a class="nav-item" href="kanban.html">
+    <a class="nav-item" data-nav="kanban" href="kanban.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
       Kanban
     </a>
-    <a class="nav-item" href="clientes.html">
+    <a class="nav-item" data-nav="clientes" href="clientes.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Clientes
     </a>
+    <a class="nav-item" id="nav-cadastros" data-nav="cadastros" href="cadastros.html" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+      Cadastros
+    </a>
   </nav>
-  <div class="sidebar-footer sidebar-footer--stack">
+  <div class="sidebar-footer">
     <div class="sidebar-userrow">
       <div class="avatar">GM</div>
       <div class="user-info">
@@ -49,10 +53,6 @@
         <div class="user-role">Funcionário</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="api.logout()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sair
-    </button>
   </div>
 </aside>
 
@@ -62,26 +62,57 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <div class="breadcrumb">
-        <span>Dashboard</span>
-        <span>/</span>
-        <span class="current">Kanban</span>
-      </div>
+      <svg class="breadcrumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="breadcrumb-muted">Dashboard</span>
+      <span class="breadcrumb-muted">/</span>
+      <span class="topbar-title">Kanban</span>
     </div>
-    <div class="topbar-actions">
+    <div class="topbar-right">
       <div class="search-bar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" placeholder="Buscar chamado ou cliente..." id="search-input" oninput="filterCards()"/>
       </div>
-      <button class="btn-new" onclick="window.location.href='abrir-chamado.html'">
+      <button class="btn-new" id="btn-new-call" onclick="window.location.href='abrir-chamado.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Chamado
+      </button>
+      <button class="btn-sidebar-toggle" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="13" y1="9" x2="17" y2="9"/><line x1="13" y1="15" x2="17" y2="15"/></svg>
+        <span class="btn-sidebar-toggle-text">Mostrar workspace</span>
+      </button>
+      <button class="btn-logout-top" onclick="api.logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
       </button>
     </div>
   </div>
 
   <!-- KANBAN WRAPPER -->
   <div class="kanban-wrapper">
+    <div class="hero-card">
+      <div class="hero-main">
+        <span class="hero-eyebrow">Workspace SGOS</span>
+        <div class="page-header">
+          <h2>Painel Kanban</h2>
+          <p>Centralize o fluxo de atendimento, priorize a fila e acompanhe a execução dos chamados em tempo real.</p>
+        </div>
+      </div>
+      <div class="hero-highlights">
+        <div class="hero-highlight">
+          <strong>Visão centralizada</strong>
+          <span>Visualize os chamados por etapa e identifique gargalos do atendimento com rapidez.</span>
+        </div>
+        <div class="hero-highlight">
+          <strong>Gestão com contexto</strong>
+          <span>Use filtros, visão pessoal e indicadores para decidir o próximo atendimento com confiança.</span>
+        </div>
+        <div class="hero-highlight">
+          <strong>Ação operacional</strong>
+          <span>Abra chamados, avance status e registre atividade sem sair do quadro operacional.</span>
+        </div>
+      </div>
+    </div>
+
     <div class="kanban-header">
       <h2 class="kanban-title" id="page-title">Painel Kanban</h2>
       <div class="filter-group">
@@ -98,6 +129,7 @@
         <div class="mine-tabs" id="mine-tabs">
           <button class="mine-tab is-active" data-scope="assigned" onclick="setMineScope('assigned')">Atribuídos</button>
           <button class="mine-tab" data-scope="created" onclick="setMineScope('created')">Criados</button>
+        <button class="mine-tab" data-scope="client" id="mine-tab-client" onclick="setMineScope('client')" style="display:none;">Meus chamados</button>
           <button class="mine-tab" data-scope="dept" id="mine-tab-dept" onclick="setMineScope('dept')" style="display:none;">Meu Departamento</button>
         </div>
         <div class="mine-filters" id="mine-filters"></div>
@@ -230,6 +262,15 @@
         <div class="modal-field"><label>Técnico</label><span id="modal-assignee"></span></div>
         <div class="modal-field"><label>Abertura</label><span id="modal-date"></span></div>
       </div>
+      <div class="modal-assign-admin" id="modal-assign-admin" style="display:none;">
+        <div class="modal-field">
+          <label for="modal-assign-tech">Atribuir técnico</label>
+          <select id="modal-assign-tech">
+            <option value="">Selecione um técnico</option>
+          </select>
+        </div>
+        <button class="btn-modal-cancel" id="btn-assign-tech" onclick="assignSelectedTech()">Atribuir técnico</button>
+      </div>
       <div class="modal-desc-label">Descrição</div>
       <div class="modal-desc" id="modal-desc"></div>
       <div class="modal-history">
@@ -292,6 +333,11 @@ let cards = [];
 let activeFilter = '';
 let dragId = null;
 let openCardId = null;
+let __isAdmin = false;
+let __userType = '';
+let __isClient = false;
+let __redirectingClientView = false;
+let __assignableTechs = [];
 let __mine = false;
 let __mineScope = 'assigned';
 let __mineOverview = null;
@@ -300,7 +346,7 @@ let __serviceResolve = null;
 let __serviceValue = '';
 
 function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  return String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#039;' }[m]));
 }
 
 function openServiceModal(osLabel) {
@@ -410,14 +456,24 @@ function _setNavActive() {
 function _applyMineTitle() {
   const v = _getView();
   const title = document.getElementById('page-title');
-  const crumb = document.querySelector('.breadcrumb .current');
+  const crumb = document.querySelector('.topbar-title');
+  const heroTitle = document.querySelector('.page-header h2');
+  const heroText = document.querySelector('.page-header p');
   if (!title || !crumb) return;
   if (v === 'mine') {
-    title.textContent = 'Meus Chamados';
+    title.textContent = __isClient ? 'Meus Chamados' : 'Meus Chamados';
     crumb.textContent = 'Meus Chamados';
+    if (heroTitle) heroTitle.textContent = __isClient ? 'Acompanhamento dos Meus Chamados' : 'Meus Chamados';
+    if (heroText) heroText.textContent = __isClient
+      ? 'Acompanhe o andamento das suas solicitações, consulte atualizações e visualize o histórico do atendimento em tempo real.'
+      : 'Centralize o fluxo de atendimento, priorize a fila e acompanhe a execução dos chamados em tempo real.';
   } else {
     title.textContent = 'Painel Kanban';
     crumb.textContent = 'Kanban';
+    if (heroTitle) heroTitle.textContent = __isClient ? 'Painel de Acompanhamento' : 'Painel Kanban';
+    if (heroText) heroText.textContent = __isClient
+      ? 'Visualize seus chamados em um quadro somente leitura, com foco no status e no histórico de atendimento.'
+      : 'Centralize o fluxo de atendimento, priorize a fila e acompanhe a execução dos chamados em tempo real.';
   }
 }
 
@@ -442,7 +498,10 @@ function render() {
     if (!body) return;
     const addBtn = body.querySelector('.add-card-btn');
     body.innerHTML = '';
-    if (addBtn) body.appendChild(addBtn);
+    if (addBtn) {
+      addBtn.style.display = status === 'aberta' ? '' : 'none';
+      body.appendChild(addBtn);
+    }
 
     const filtered = cards.filter(c =>
       c.status === status &&
@@ -465,7 +524,7 @@ function render() {
 function buildCard(c) {
   const div = document.createElement('div');
   div.className = __mineStale.has(c.id) ? 'card is-stale' : 'card';
-  div.draggable = true;
+  div.draggable = !__isClient;
   div.dataset.id = c.id;
 
   const nextStatusKey = STATUS_ORDER[STATUS_ORDER.indexOf(c.status) + 1];
@@ -493,19 +552,22 @@ function buildCard(c) {
       </span>
       <span class="card-date">${date}</span>
     </div>
-    ${!isLast && nextMeta ? `<button class="card-advance" onclick="event.stopPropagation();advanceCard(${c.id})">
+    ${!__isClient && !isLast && nextMeta ? `<button class="card-advance" onclick="event.stopPropagation();advanceCard(${c.id})">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       Avançar para ${nextMeta.label}
     </button>` : ''}`;
 
   div.addEventListener('click', () => openModal(c.id));
-  div.addEventListener('dragstart', () => { dragId = c.id; setTimeout(() => div.classList.add('dragging'), 0); });
-  div.addEventListener('dragend', () => { div.classList.remove('dragging'); dragId = null; });
+  if (!__isClient) {
+    div.addEventListener('dragstart', () => { dragId = c.id; setTimeout(() => div.classList.add('dragging'), 0); });
+    div.addEventListener('dragend', () => { div.classList.remove('dragging'); dragId = null; });
+  }
   return div;
 }
 
 // ─── ADVANCE ────────────────────────────────────────────
 async function advanceCard(id) {
+  if (__isClient) return;
   try {
     const c = cards.find(x => x.id === id);
     let obs = '';
@@ -535,6 +597,7 @@ function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag
 function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 
 async function onDrop(e, targetStatus) {
+  if (__isClient) return;
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (!dragId) return;
@@ -606,11 +669,26 @@ async function refreshModal(id) {
     btn.innerHTML = nextMeta
       ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Avançar para ${nextMeta.label}`
       : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Encerrado`;
+    btn.style.display = __isClient ? 'none' : '';
 
     const btnAssign = document.getElementById('btn-assign');
     if (btnAssign) {
-      const canAssign = !c.atribuido_para_id && c.status !== 'encerrada';
+      const canAssign = !__isClient && !__isAdmin && !c.atribuido_para_id && c.status !== 'encerrada';
       btnAssign.style.display = canAssign ? '' : 'none';
+    }
+
+    const adminAssign = document.getElementById('modal-assign-admin');
+    const adminAssignSelect = document.getElementById('modal-assign-tech');
+    const adminCanAssign = !__isClient && __isAdmin && c.status !== 'encerrada';
+    if (adminAssign) adminAssign.style.display = adminCanAssign ? '' : 'none';
+    if (adminAssignSelect) {
+      adminAssignSelect.innerHTML = '<option value="">Selecione um técnico</option>' +
+        __assignableTechs.map(t => {
+          const name = [t.first_name || '', t.last_name || ''].join(' ').trim() || t.username || `Usuário #${t.id}`;
+          const dept = t.departamento ? ` (${t.departamento})` : '';
+          const selected = c.atribuido_para_id === t.id ? ' selected' : '';
+          return `<option value="${t.id}"${selected}>${escapeHtml(name + dept)}</option>`;
+        }).join('');
     }
   } catch(err) {
     if (err && err.status === 401) return;
@@ -619,6 +697,7 @@ async function refreshModal(id) {
 }
 
 async function assignToMe() {
+  if (__isClient) return;
   if (!openCardId) return;
   try {
     const updated = await api.os.assign(openCardId, {});
@@ -628,6 +707,38 @@ async function assignToMe() {
     if (__mine) await refreshMineOverview(false);
     await refreshModal(openCardId);
     showToast('success', 'Chamado atribuído!');
+  } catch (err) {
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+async function loadAssignableTechs() {
+  if (!__isAdmin) return;
+  try {
+    const res = await api.users.list({ page_size: 500, tipo: 'tecnico' });
+    const rows = Array.isArray(res?.results) ? res.results : (Array.isArray(res) ? res : []);
+    __assignableTechs = rows.filter(t => t && t.id && t.is_active !== false);
+  } catch (err) {
+    __assignableTechs = [];
+    showToast('error', apiErrorMsg(err));
+  }
+}
+
+async function assignSelectedTech() {
+  if (!__isAdmin || !openCardId) return;
+  const techId = document.getElementById('modal-assign-tech')?.value || '';
+  if (!techId) {
+    showToast('error', 'Selecione um técnico.');
+    return;
+  }
+  try {
+    const updated = await api.os.assign(openCardId, { user_id: Number(techId) });
+    const idx = cards.findIndex(c => c.id === openCardId);
+    if (idx >= 0) cards[idx] = { ...cards[idx], ...updated };
+    render();
+    if (__mine) await refreshMineOverview(false);
+    await refreshModal(openCardId);
+    showToast('success', 'Técnico atribuído com sucesso!');
   } catch (err) {
     showToast('error', apiErrorMsg(err));
   }
@@ -660,6 +771,7 @@ function getListParamsForMineScope(scope) {
   const base = { page_size: 300 };
   if (scope === 'assigned') base.assigned_to = 'me';
   if (scope === 'created') base.created_by = 'me';
+  if (scope === 'client') return base;
   if (scope === 'dept') {
     const dep = __mineOverview?.user?.departamento || '';
     if (dep) base.departamento = dep;
@@ -672,8 +784,8 @@ function renderMineFilters(filters) {
   if (!el) return;
   const defs = [
     { key: 'all', label: 'Todos' },
-    { key: 'my_high', label: 'Minhas críticas/altas' },
-    { key: 'my_wait', label: 'Minhas aguardando' },
+    { key: 'my_high', label: __isClient ? 'Críticos/altos' : 'Minhas críticas/altas' },
+    { key: 'my_wait', label: __isClient ? 'Aguardando retorno' : 'Minhas aguardando' },
     { key: 'stale_48', label: 'Sem atualização 48h' },
   ];
   el.innerHTML = defs.map(d => `<button class="mine-filter" data-key="${d.key}" onclick="applyMinePreset('${d.key}')">${d.label}</button>`).join('');
@@ -698,14 +810,23 @@ function _minePredicate(c) {
 function renderMineKPIs(k) {
   const el = document.getElementById('mine-kpis');
   if (!el) return;
-  const items = [
-    { label: 'Abertas comigo', value: k.aberta || 0 },
-    { label: 'Em andamento', value: k.em_andamento || 0 },
-    { label: 'Em avaliação', value: k.em_avaliacao || 0 },
-    { label: 'Aguardando', value: k.aguardando || 0 },
-    { label: 'Encerradas hoje', value: k.encerradas_hoje || 0 },
-    { label: 'Encerradas semana', value: k.encerradas_semana || 0 },
-  ];
+  const items = __isClient
+    ? [
+        { label: 'Meus abertos', value: k.aberta || 0 },
+        { label: 'Em andamento', value: k.em_andamento || 0 },
+        { label: 'Em avaliação', value: k.em_avaliacao || 0 },
+        { label: 'Aguardando', value: k.aguardando || 0 },
+        { label: 'Encerrados hoje', value: k.encerradas_hoje || 0 },
+        { label: 'Encerrados semana', value: k.encerradas_semana || 0 },
+      ]
+    : [
+        { label: 'Abertas comigo', value: k.aberta || 0 },
+        { label: 'Em andamento', value: k.em_andamento || 0 },
+        { label: 'Em avaliação', value: k.em_avaliacao || 0 },
+        { label: 'Aguardando', value: k.aguardando || 0 },
+        { label: 'Encerradas hoje', value: k.encerradas_hoje || 0 },
+        { label: 'Encerradas semana', value: k.encerradas_semana || 0 },
+      ];
   el.innerHTML = items.map(i => `<div class="mine-kpi"><div class="mine-kpi-val">${i.value}</div><div class="mine-kpi-label">${i.label}</div></div>`).join('');
 }
 
@@ -773,7 +894,8 @@ function buildMineItem(c) {
   const pri = escapeHtml(c.prioridade || '');
   const urg = escapeHtml(c.urgencia || '');
   const sub = [escapeHtml(c.cliente_nome || ''), pri ? `Pri: ${pri}` : '', urg ? `Urg: ${urg}` : ''].filter(Boolean).join(' · ');
-  const canAdvance = c.status !== 'encerrada';
+  const canAdvance = !__isClient && c.status !== 'encerrada';
+  const canAdminAssign = __isAdmin && c.status !== 'encerrada';
   return `
     <div class="mine-item${staleClass}">
       <div class="mine-item-main" onclick="openModal(${c.id})">
@@ -784,10 +906,11 @@ function buildMineItem(c) {
         <div class="mine-item-title">${escapeHtml(c.titulo)}</div>
         <div class="mine-item-sub">${sub}</div>
       </div>
-      <div class="mine-item-actions">
+      ${__isClient ? '' : `<div class="mine-item-actions">
+        ${canAdminAssign ? `<button class="mine-btn" onclick="event.stopPropagation();openModal(${c.id})">Atribuir</button>` : ''}
         ${canAdvance ? `<button class="mine-btn" onclick="event.stopPropagation();advanceCard(${c.id})">Avançar</button>` : ''}
         <button class="mine-btn" onclick="event.stopPropagation();quickIteracao(${c.id})">Iteração</button>
-      </div>
+      </div>`}
     </div>`;
 }
 
@@ -816,6 +939,7 @@ function renderMineRecent(rows) {
 }
 
 async function quickIteracao(osId) {
+  if (__isClient) return;
   const text = window.prompt('Registrar iteração:', '');
   if (!text || !text.trim()) return;
   try {
@@ -865,26 +989,71 @@ async function initMine() {
   _setNavActive();
   _applyMineTitle();
   const dash = document.getElementById('mine-dashboard');
+  const board = document.getElementById('board');
   if (dash) dash.style.display = __mine ? '' : 'none';
+  if (board) board.style.display = (__mine && __isClient) ? 'none' : '';
   if (!__mine) return;
 
   try {
     __mineOverview = await api.me.overview();
     __mineStale = new Set(__mineOverview?.stale_ids || []);
     const deptBtn = document.getElementById('mine-tab-dept');
+    const clientBtn = document.getElementById('mine-tab-client');
+    const assignedBtn = document.querySelector('.mine-tab[data-scope="assigned"]');
+    const createdBtn = document.querySelector('.mine-tab[data-scope="created"]');
+    const priorityTitle = document.querySelector('#mine-priority')?.closest('.mine-panel')?.querySelector('.mine-panel-title');
+    const prioritySubtitle = document.querySelector('#mine-priority')?.closest('.mine-panel')?.querySelector('.mine-panel-subtitle');
+    const queueTitle = document.querySelector('#mine-queue')?.closest('.mine-panel')?.querySelector('.mine-panel-title');
+    const queueSubtitle = document.querySelector('#mine-queue')?.closest('.mine-panel')?.querySelector('.mine-panel-subtitle');
+    const recentTitle = document.querySelector('#mine-recent')?.closest('.mine-panel')?.querySelector('.mine-panel-title');
+    const recentSubtitle = document.querySelector('#mine-recent')?.closest('.mine-panel')?.querySelector('.mine-panel-subtitle');
     if (deptBtn) deptBtn.style.display = __mineOverview?.user?.is_admin ? '' : 'none';
+    if (__isClient) {
+      if (clientBtn) clientBtn.style.display = '';
+      if (assignedBtn) assignedBtn.style.display = 'none';
+      if (createdBtn) createdBtn.style.display = 'none';
+      if (deptBtn) deptBtn.style.display = 'none';
+      if (priorityTitle) priorityTitle.textContent = 'Chamados em destaque';
+      if (prioritySubtitle) prioritySubtitle.textContent = 'Solicitações críticas e altas para acompanhar';
+      if (queueTitle) queueTitle.textContent = 'Próximas atualizações';
+      if (queueSubtitle) queueSubtitle.textContent = 'Chamados que merecem atenção agora';
+      if (recentTitle) recentTitle.textContent = 'Últimas movimentações';
+      if (recentSubtitle) recentSubtitle.textContent = 'Mudanças recentes nos seus chamados';
+    }
     renderMineFilters(__mineOverview?.saved_filters || []);
     renderMineRecent(__mineOverview?.recentes || []);
-    setMineScope('assigned');
+    setMineScope(__isClient ? 'client' : (__mineOverview?.user?.is_admin ? 'dept' : 'assigned'));
   } catch (e) {
-    setMineScope('assigned');
+    setMineScope(__isClient ? 'client' : 'assigned');
   }
 }
 
 if (__authed) {
-  initMine().then(() => {
-    if (!__mine) loadCards();
-  });
+  getMeOverviewCached()
+    .then(async overview => {
+      __isAdmin = !!overview?.user?.is_admin;
+      __userType = overview?.user?.tipo || '';
+      __isClient = __userType === 'somente_cliente';
+      const newCallBtn = document.getElementById('btn-new-call');
+      if (newCallBtn && __isClient) newCallBtn.style.display = 'none';
+      __mineOverview = overview || null;
+      __mineStale = new Set(__mineOverview?.stale_ids || []);
+      if (__isClient && _getView() !== 'mine') {
+        __redirectingClientView = true;
+        window.location.replace('kanban.html?view=mine');
+        return;
+      }
+      if (__isAdmin) await loadAssignableTechs();
+    })
+    .catch(() => {
+      __isAdmin = false;
+    })
+    .finally(() => {
+      if (__redirectingClientView) return;
+      initMine().then(() => {
+        if (!__mine) loadCards();
+      });
+    });
 }
 
 </script>

@@ -1,8 +1,6 @@
 from django.utils import timezone
 from django.db.models import Q, Count
 from django.contrib.auth.models import User
-from django.contrib.auth.models import Group
-
 from datetime import timedelta
 from rest_framework import generics, status, filters, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -11,15 +9,51 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Cliente, OrdemServico, HistoricoStatus, Iteracao, Anexo
+from .models import (
+    Cliente, OrdemServico, HistoricoStatus, Iteracao, Anexo,
+    OpcaoDepartamento, OpcaoTipo, OpcaoCategoria, OpcaoPrioridade, OpcaoUrgencia,
+    PerfilUsuario,
+)
 from .serializers import (
-    RegisterSerializer, UserSerializer,
+    RegisterSerializer, PasswordResetSerializer, UserSerializer,
     ClienteSerializer,
     OrdemServicoListSerializer, OrdemServicoDetailSerializer,
     OrdemServicoCreateSerializer, AvancarStatusSerializer,
     IteracaoCreateSerializer, AnexoSerializer,
-    TecnicoSerializer, TecnicoCreateSerializer, TecnicoUpdateSerializer,
+    AdminUserSerializer, AdminUserCreateSerializer, AdminUserUpdateSerializer,
+    DepartamentoSerializer, TipoSerializer, CategoriaSerializer, PrioridadeSerializer, UrgenciaSerializer,
 )
+
+
+def get_user_tipo(user):
+    if getattr(user, 'is_superuser', False):
+        return PerfilUsuario.TIPO_ADMIN
+    try:
+        return user.perfil.tipo or PerfilUsuario.TIPO_CLIENTE
+    except Exception:
+        return PerfilUsuario.TIPO_CLIENTE
+
+
+def get_user_departamento(user):
+    try:
+        return user.perfil.departamento
+    except Exception:
+        return None
+
+
+def get_user_departamento_id(user):
+    departamento = get_user_departamento(user)
+    return getattr(departamento, 'id', None)
+
+
+def is_client_user(user):
+    return get_user_tipo(user) == PerfilUsuario.TIPO_CLIENTE
+
+
+def is_technician_user(user):
+    if getattr(user, 'is_superuser', False):
+        return True
+    return get_user_tipo(user) == PerfilUsuario.TIPO_TECNICO
 
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -57,6 +91,16 @@ class LogoutView(APIView):
             return Response({'error': 'Token inválido.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PasswordResetView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Senha redefinida com sucesso.'}, status=status.HTTP_200_OK)
+
+
 class MeView(APIView):
     """Retorna dados do usuário autenticado."""
     permission_classes = [IsAuthenticated]
@@ -70,12 +114,10 @@ class MeOverviewView(APIView):
 
     def get(self, request):
         user = request.user
-        try:
-            departamento = user.perfil.departamento.nome if user.perfil.departamento_id else ''
-        except Exception:
-            departamento = ''
-
+        departamento_obj = get_user_departamento(user)
+        departamento = departamento_obj.nome if departamento_obj else ''
         is_admin = bool(user.is_superuser)
+        user_tipo = get_user_tipo(user)
 
         qs = OrdemServico.objects.select_related(
             'cliente',
@@ -88,7 +130,10 @@ class MeOverviewView(APIView):
             'categoria',
         )
 
-        my_all = qs.filter(atribuido_para=user)
+        if user_tipo == PerfilUsuario.TIPO_CLIENTE:
+            my_all = qs.filter(cliente__usuario=user)
+        else:
+            my_all = qs.filter(atribuido_para=user)
         my_open = my_all.exclude(status='encerrada')
 
         now = timezone.now()
@@ -100,12 +145,24 @@ class MeOverviewView(APIView):
             status_novo='encerrada',
             alterado_em__gte=today_start,
         ).values('os_id').distinct().count()
+        if user_tipo == PerfilUsuario.TIPO_CLIENTE:
+            closed_today = HistoricoStatus.objects.filter(
+                os__cliente__usuario=user,
+                status_novo='encerrada',
+                alterado_em__gte=today_start,
+            ).values('os_id').distinct().count()
 
         closed_week = HistoricoStatus.objects.filter(
             os__atribuido_para=user,
             status_novo='encerrada',
             alterado_em__gte=week_start,
         ).values('os_id').distinct().count()
+        if user_tipo == PerfilUsuario.TIPO_CLIENTE:
+            closed_week = HistoricoStatus.objects.filter(
+                os__cliente__usuario=user,
+                status_novo='encerrada',
+                alterado_em__gte=week_start,
+            ).values('os_id').distinct().count()
 
         kpis = {
             'aberta': my_open.filter(status='aberta').count(),
@@ -130,8 +187,12 @@ class MeOverviewView(APIView):
         badge_aguardando = my_open.filter(status='aguardando').count()
         badge_high = my_open.filter(prioridade__nivel__gte=3).count()
 
-        hs = HistoricoStatus.objects.filter(alterado_por=user).select_related('os').order_by('-alterado_em')[:20]
-        it = Iteracao.objects.filter(criado_por=user).select_related('os').order_by('-criado_em')[:20]
+        if user_tipo == PerfilUsuario.TIPO_CLIENTE:
+            hs = HistoricoStatus.objects.filter(os__cliente__usuario=user).select_related('os').order_by('-alterado_em')[:20]
+            it = Iteracao.objects.filter(os__cliente__usuario=user).select_related('os').order_by('-criado_em')[:20]
+        else:
+            hs = HistoricoStatus.objects.filter(alterado_por=user).select_related('os').order_by('-alterado_em')[:20]
+            it = Iteracao.objects.filter(criado_por=user).select_related('os').order_by('-criado_em')[:20]
         recent = []
 
         for r in hs:
@@ -194,6 +255,7 @@ class MeOverviewView(APIView):
                 'username': user.username,
                 'departamento': departamento,
                 'is_admin': is_admin,
+                'tipo': user_tipo,
             },
             'kpis': kpis,
             'badges': {
@@ -218,41 +280,115 @@ class IsSuperUserOnly(BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.is_superuser)
 
 
-class TecnicoListCreateView(generics.ListCreateAPIView):
+LOOKUP_CONFIG = {
+    'departamentos': {
+        'model': OpcaoDepartamento,
+        'serializer': DepartamentoSerializer,
+        'ordering': ('nome',),
+        'label': 'Departamento',
+    },
+    'tipos': {
+        'model': OpcaoTipo,
+        'serializer': TipoSerializer,
+        'ordering': ('nome',),
+        'label': 'Tipo',
+    },
+    'categorias': {
+        'model': OpcaoCategoria,
+        'serializer': CategoriaSerializer,
+        'ordering': ('nome',),
+        'label': 'Categoria',
+    },
+    'prioridades': {
+        'model': OpcaoPrioridade,
+        'serializer': PrioridadeSerializer,
+        'ordering': ('nivel', 'nome'),
+        'label': 'Prioridade',
+    },
+    'urgencias': {
+        'model': OpcaoUrgencia,
+        'serializer': UrgenciaSerializer,
+        'ordering': ('nivel', 'nome'),
+        'label': 'Urgência',
+    },
+}
+
+
+class LookupBaseMixin:
+    permission_classes = [IsAuthenticated, IsSuperUserOnly]
+
+    def get_lookup_config(self):
+        kind = self.kwargs.get('kind', '')
+        if kind not in LOOKUP_CONFIG:
+            raise serializers.ValidationError({'kind': 'Tipo de cadastro inválido.'})
+        return LOOKUP_CONFIG[kind]
+
+    def get_queryset(self):
+        cfg = self.get_lookup_config()
+        return cfg['model'].objects.all().order_by(*cfg['ordering'])
+
+    def get_serializer_class(self):
+        return self.get_lookup_config()['serializer']
+
+
+class LookupListCreateView(LookupBaseMixin, generics.ListCreateAPIView):
+    pass
+
+
+class LookupDetailView(LookupBaseMixin, generics.RetrieveUpdateDestroyAPIView):
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.ativo = False
+        instance.save(update_fields=['ativo'])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdminUserListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsSuperUserOnly]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return TecnicoCreateSerializer
-        return TecnicoSerializer
+            return AdminUserCreateSerializer
+        return AdminUserSerializer
 
     def get_queryset(self):
-        return User.objects.filter(groups__name='Tecnicos').select_related('perfil__departamento').order_by('first_name', 'username')
+        qs = User.objects.select_related('perfil__departamento', 'cliente_vinculado').filter(
+            Q(is_superuser=True) | Q(perfil__tipo=PerfilUsuario.TIPO_TECNICO)
+        ).order_by('first_name', 'username')
+        tipo = (self.request.query_params.get('tipo') or '').strip()
+        if tipo == PerfilUsuario.TIPO_ADMIN:
+            return qs.filter(is_superuser=True)
+        if tipo == PerfilUsuario.TIPO_TECNICO:
+            return qs.filter(perfil__tipo=tipo)
+        return qs
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response(TecnicoSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(AdminUserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
-class TecnicoDetailView(generics.RetrieveUpdateDestroyAPIView):
+class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsSuperUserOnly]
-    queryset = User.objects.filter(groups__name='Tecnicos').select_related('perfil__departamento')
-    serializer_class = TecnicoUpdateSerializer
+    queryset = User.objects.select_related('perfil__departamento', 'cliente_vinculado').filter(
+        Q(is_superuser=True) | Q(perfil__tipo=PerfilUsuario.TIPO_TECNICO)
+    )
+    serializer_class = AdminUserUpdateSerializer
 
     def update(self, request, *args, **kwargs):
         user_obj = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True, context={'user_obj': user_obj})
         serializer.is_valid(raise_exception=True)
         user_obj = serializer.update(user_obj, serializer.validated_data)
-        return Response(TecnicoSerializer(user_obj).data)
+        return Response(AdminUserSerializer(user_obj).data)
 
     def destroy(self, request, *args, **kwargs):
         user_obj = self.get_object()
         user_obj.is_active = False
         user_obj.save(update_fields=['is_active'])
-        return Response(TecnicoSerializer(user_obj).data)
+        return Response(AdminUserSerializer(user_obj).data)
 
 
 # ── CLIENTES ─────────────────────────────────────────────────────────────────
@@ -261,15 +397,21 @@ class ClienteListCreateView(generics.ListCreateAPIView):
     serializer_class = ClienteSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['nome', 'email', 'telefone']
+    search_fields = ['nome', 'email', 'telefone', 'departamento__nome']
     ordering_fields = ['nome', 'criado_em']
     ordering = ['nome']
 
     def get_queryset(self):
-        return Cliente.objects.annotate(
+        qs = Cliente.objects.select_related('departamento', 'usuario').annotate(
             total_os=Count('ordens'),
             os_abertas=Count('ordens', filter=~Q(ordens__status='encerrada'))
         )
+        if is_client_user(self.request.user):
+            qs = qs.filter(usuario=self.request.user)
+        departamento = (self.request.query_params.get('departamento') or '').strip()
+        if departamento:
+            qs = qs.filter(departamento__nome__iexact=departamento)
+        return qs
 
 
 class ClienteDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -278,7 +420,10 @@ class ClienteDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Cliente.objects.all()
+        qs = Cliente.objects.select_related('departamento', 'usuario')
+        if is_client_user(self.request.user):
+            qs = qs.filter(usuario=self.request.user)
+        return qs
 
     def destroy(self, request, *args, **kwargs):
         cliente = self.get_object()
@@ -318,14 +463,14 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
         )
 
         if not self.request.user.is_superuser:
-            try:
-                dept_id = self.request.user.perfil.departamento_id
-            except Exception:
-                dept_id = None
-            if dept_id:
-                qs = qs.filter(departamento_id=dept_id)
+            if is_client_user(self.request.user):
+                qs = qs.filter(cliente__usuario=self.request.user)
             else:
-                qs = qs.none()
+                dept_id = get_user_departamento_id(self.request.user)
+                if dept_id:
+                    qs = qs.filter(departamento_id=dept_id)
+                else:
+                    qs = qs.none()
         # Filtros opcionais
         status_param = self.request.query_params.get('status')
         prioridade   = self.request.query_params.get('prioridade')
@@ -371,15 +516,23 @@ class OrdemServicoListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         """RN003: status inicial = aberta, data registrada pelo sistema."""
         if not self.request.user.is_superuser:
-            try:
-                dept_name = self.request.user.perfil.departamento.nome if self.request.user.perfil.departamento_id else ''
-            except Exception:
-                dept_name = ''
             req_dep = (serializer.validated_data.get('departamento') or '').strip()
-            if not dept_name:
-                raise serializers.ValidationError({'departamento': 'Usuário sem departamento. Solicite a um admin.'})
-            if req_dep != dept_name:
-                raise serializers.ValidationError({'departamento': 'Departamento do chamado deve ser o seu departamento.'})
+            cliente = serializer.validated_data.get('cliente')
+            if is_client_user(self.request.user):
+                cliente_vinculado = getattr(self.request.user, 'cliente_vinculado', None)
+                if not cliente_vinculado:
+                    raise serializers.ValidationError({'cliente': 'Usuário cliente sem cadastro vinculado.'})
+                if not cliente or cliente.pk != cliente_vinculado.pk:
+                    raise serializers.ValidationError({'cliente': 'Cliente só pode abrir chamados para o próprio cadastro.'})
+                if not req_dep:
+                    raise serializers.ValidationError({'departamento': 'Selecione o setor de destino do chamado.'})
+            else:
+                departamento_obj = get_user_departamento(self.request.user)
+                dept_name = departamento_obj.nome if departamento_obj else ''
+                if not dept_name:
+                    raise serializers.ValidationError({'departamento': 'Usuário sem departamento. Solicite a um admin.'})
+                if req_dep != dept_name:
+                    raise serializers.ValidationError({'departamento': 'Departamento do chamado deve ser o seu departamento.'})
         os_obj = serializer.save(criado_por=self.request.user, status='aberta')
         # Registra histórico inicial
         HistoricoStatus.objects.create(
@@ -412,10 +565,9 @@ class OrdemServicoDetailView(generics.RetrieveUpdateDestroyAPIView):
         qs = super().get_queryset().select_related('departamento', 'atribuido_para', 'prioridade', 'urgencia', 'tipo', 'categoria')
         if self.request.user.is_superuser:
             return qs
-        try:
-            dept_id = self.request.user.perfil.departamento_id
-        except Exception:
-            dept_id = None
+        if is_client_user(self.request.user):
+            return qs.filter(cliente__usuario=self.request.user)
+        dept_id = get_user_departamento_id(self.request.user)
         if dept_id:
             return qs.filter(departamento_id=dept_id)
         return qs.none()
@@ -457,11 +609,11 @@ class AvancarStatusView(APIView):
         except OrdemServico.DoesNotExist:
             return Response({'error': 'OS não encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
+        if is_client_user(request.user):
+            return Response({'error': 'Cliente não pode avançar status do chamado.'}, status=status.HTTP_403_FORBIDDEN)
+
         if not request.user.is_superuser:
-            try:
-                user_dept_id = request.user.perfil.departamento_id
-            except Exception:
-                user_dept_id = None
+            user_dept_id = get_user_departamento_id(request.user)
             if not user_dept_id or os_obj.departamento_id != user_dept_id:
                 return Response({'error': 'Sem permissão para alterar chamados de outro departamento.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -496,6 +648,9 @@ class AtribuirTecnicoView(APIView):
         except OrdemServico.DoesNotExist:
             return Response({'error': 'OS não encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
+        if is_client_user(request.user):
+            return Response({'error': 'Cliente não pode atribuir técnicos.'}, status=status.HTTP_403_FORBIDDEN)
+
         if not os_obj.departamento_id:
             return Response({'error': 'OS sem departamento.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -512,15 +667,12 @@ class AtribuirTecnicoView(APIView):
             if os_obj.atribuido_para_id:
                 return Response({'error': 'Chamado já possui técnico atribuído.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            target_dept_id = target.perfil.departamento_id
-        except Exception:
-            target_dept_id = None
-        if not target_dept_id or target_dept_id != os_obj.departamento_id:
-            return Response({'error': 'Técnico deve ser do mesmo departamento do chamado.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not request.user.is_superuser:
+            target_dept_id = get_user_departamento_id(target)
+            if not target_dept_id or target_dept_id != os_obj.departamento_id:
+                return Response({'error': 'Técnico deve ser do mesmo departamento do chamado.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        grp, _ = Group.objects.get_or_create(name='Tecnicos')
-        if not target.groups.filter(pk=grp.pk).exists() and not target.is_superuser:
+        if not is_technician_user(target):
             return Response({'error': 'Usuário não é técnico.'}, status=status.HTTP_400_BAD_REQUEST)
 
         os_obj.atribuido_para = target
@@ -584,6 +736,20 @@ class AnexoUploadView(APIView):
 def dashboard_view(request):
     """Agrega KPIs para o Dashboard."""
     qs = OrdemServico.objects.all()
+    clientes_qs = Cliente.objects.all()
+
+    if not request.user.is_superuser:
+        if is_client_user(request.user):
+            qs = qs.filter(cliente__usuario=request.user)
+            clientes_qs = clientes_qs.filter(usuario=request.user)
+        else:
+            dept_id = get_user_departamento_id(request.user)
+            if dept_id:
+                qs = qs.filter(departamento_id=dept_id)
+                clientes_qs = clientes_qs.filter(departamento_id=dept_id)
+            else:
+                qs = qs.none()
+                clientes_qs = clientes_qs.none()
 
     kpis = {
         'total':        qs.count(),
@@ -592,7 +758,7 @@ def dashboard_view(request):
         'em_andamento': qs.filter(status='em_andamento').count(),
         'em_avaliacao': qs.filter(status='em_avaliacao').count(),
         'encerrada':    qs.filter(status='encerrada').count(),
-        'total_clientes': Cliente.objects.count(),
+        'total_clientes': clientes_qs.count(),
     }
 
     por_tipo_raw = qs.values('tipo__nome').annotate(total=Count('id')).order_by('-total')
